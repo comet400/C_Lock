@@ -135,4 +135,29 @@ typedef struct {
     size_t  capacity; // Number of elements
 } TokenArray;
 
+TokenKind lookup_operator(const char* str); // Lookup an operator
+
+TokenKind lookup_keyword(const char* str); // Lookup a keyword
+
+void init_token_array(TokenArray* arr); // Initialize the array
+
+void free_token_array(TokenArray* arr); // Free the memory used by the array
+
+void push_token(TokenArray* arr, Token t); // Add a token to the array
+
+Token make_token(const char* value, TokenKind type); // Create a token with a value and type
+
+TokenArray tokenize(const char* source); // Tokenize the source code
+
+char* strndump(const char* str, size_t n); // Duplicate n characters of a string because strndup was not working
+
+Token lex_char(const char* source, size_t* pos, size_t length,
+    size_t* lineNo, size_t* colNo); // Lex a character literal
+
+Token lex_string(const char* source, size_t* pos, size_t length,
+    size_t* lineNo, size_t* colNo); // Lex a string literal
+
+Token lex_number_or_float(const char* source, size_t* pos, size_t length,
+    size_t* lineNo, size_t* colNo); // Lex a number or a float
+
 #endif // LEXER_H
