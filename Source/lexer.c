@@ -424,7 +424,7 @@ Token lex_number_or_float(const char* source, size_t* pos, size_t length,
             }
         }
 
-        // optional exponent? e.g. 3.14e+10 or 3e-2
+        // optional exponent? e.g. 3.14e+10 or 3e-2 thought of doing it but gave up :p
         if (isFloat) {
             // check if there's an 'e' or 'E'
             if ((*pos) < length && (source[*pos] == 'e' || source[*pos] == 'E')) {
@@ -443,7 +443,7 @@ Token lex_number_or_float(const char* source, size_t* pos, size_t length,
                     (*colNo)++;
                     exponentDigits++;
                 }
-                // if exponentDigits==0 => malformed exponent => handle error if you want
+                // if exponentDigits==0 => malformed exponent => handle error if you want, i will come back here later
             }
         }
     }
