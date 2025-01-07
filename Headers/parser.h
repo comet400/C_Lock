@@ -15,8 +15,11 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stddef.h>
+
 #include "lexer.h"
 #include "ast.h"
+
 
 typedef struct {
     TokenArray* tokens;

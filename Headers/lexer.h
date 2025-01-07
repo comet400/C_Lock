@@ -12,6 +12,9 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include <stddef.h>
+
+
 typedef enum {
     // Operators
     TOKEN_PLUS,             // +
