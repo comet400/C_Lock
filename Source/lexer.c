@@ -496,7 +496,7 @@ Token lex_string(const char* source, size_t* pos, size_t length,
 
     while ((*pos) < length && source[*pos] != '\"') {
         if (source[*pos] == '\n') {
-            // allow multiline? or error out?
+            // allow multiline? or error out? not sure yet but in the end sounds cool I guess?
             // We'll allow but increment line
             (*lineNo)++;
             (*colNo) = 1;
@@ -558,7 +558,7 @@ Token lex_char(const char* source, size_t* pos, size_t length,
     // We'll read until the next `'` or end-of-file
     while ((*pos) < length && source[*pos] != '\'') {
         if (source[*pos] == '\n') {
-            // If your language forbids multiline chars, error out
+            // Char should only be one char, but once we have a runtime lets mess more with strings
             fprintf(stderr, "Unterminated character literal at line %zu, col %zu\n", *lineNo, *colNo);
             break;
         }
@@ -715,7 +715,7 @@ TokenArray tokenize(const char* source) {
         colNo++;
     }
 
-    // Add final EOF token
+    // Add final EOF token for the program
     {
         Token eofToken = make_token("", TOKEN_EOF);
         eofToken.line = lineNo;
