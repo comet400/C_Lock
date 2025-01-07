@@ -41,6 +41,7 @@ ASTNode* parse_array_access(Parser* parser, ASTNode* identifier);
 ASTNode* parse_var_declaration(Parser* parser, int is_array);
 ASTNode* parse_function_declaration(Parser* parser);
 
+
 // Expression parsing
 ASTNode* parse_expression(Parser* parser);
 ASTNode* parse_binary(Parser* parser, int precedence);
@@ -57,6 +58,8 @@ Token peek_token(Parser* parser);
 Token consume_token(Parser* parser);
 int match_token(Parser* parser, TokenKind type);
 int get_precedence(TokenKind type);
+void synchronize_to_next_case(Parser* parser);
+void parse_case_statements(Parser* parser, ASTNode* caseNode);
 
 
 #endif PARSER_H
