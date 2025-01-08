@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -g -O2 -IHeaders  # Include the Headers directory
+CFLAGS = -Wall -Wextra -Os -march=native -mtune=native -flto -funroll-loops -IHeaders
 
 # Target executable name
 TARGET = clock
