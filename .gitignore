@@ -1,0 +1,21 @@
+# Ignore object files
+*.o
+
+# Ignore executables
+*.exe
+
+# Ignore build directories
+/build/
+/bin/
+
+# Ignore IDE-specific settings
+.vscode/
+.idea/
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
