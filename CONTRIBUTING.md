@@ -1,38 +1,65 @@
-# Contributing to Clock
+# Contributing to **Clock**
 
-Thank you for your interest in contributing to **Clock**! Whether you're fixing a bug, improving documentation, or adding a new feature, your contributions are welcome and appreciated. This document outlines the process for contributing.
+Thank you for showing interest in contributing to **Clock**! Whether you're fixing bugs, improving documentation, adding features, or proposing ideas, your contributions are invaluable. This guide will help you get started and explain the contribution process.
 
 ---
 
 ## 🛠️ How to Contribute
 
 ### 1. **Find an Issue to Work On**
-- Check the [Issues](https://github.com/comet400/clock/issues) tab for tasks labeled:
-  - `good first issue`: Great for first-time contributors.
-  - `help wanted`: Tasks that need additional help.
-- If you find something you'd like to work on, comment on the issue to let others know.
+- Browse the [Issues](https://github.com/comet400/clock/issues) section to find tasks that align with your interests and skill set.
+  - `good first issue`: Perfect for newcomers to the project.
+  - `help wanted`: Issues requiring additional support.
+- Once you’ve chosen an issue:
+  - Comment on the issue to express your interest.
+  - Wait for confirmation or assignment before starting work.
 
 ### 2. **Suggest Enhancements**
-If you have an idea for improving **Clock**, open a new issue by clicking [here](https://github.com/comet400/clock/issues/new). Please provide:
-- A clear and concise description of the idea.
-- Any supporting examples or use cases.
+Have an idea to improve **Clock**? Share it with the community by:
+- Opening a [new issue](https://github.com/comet400/clock/issues/new).
+- Including the following details:
+  - A clear and concise description of your idea.
+  - Supporting examples, use cases, or diagrams (if applicable).
 
----
-
-### 3. **Another way**
-If you are really interested in contributing to this project, you may contact me through any of the socials there were shown.
+### 3. **Collaborate Directly**
+For personalized guidance or collaboration:
+- Reach out to me via social links provided in the repository.
 
 ---
 
 ## 🖥️ Setting Up the Project Locally
 
 ### Prerequisites
-- Git
-- GCC or a similar C compiler
-- OpenSSL library
+Before getting started, ensure you have the following tools installed:
+- **Git**: Version control system to clone and manage the repository.
+- **C Compiler**: GCC or any similar compiler for building the project.
+- **OpenSSL Library**: Required for secure features of **Clock**.
 
-### Steps
-1. **Fork the Repository**: Click the "Fork" button at the top of this repository.
-2. **Clone Your Fork**:
-   ```bash
-   git clone https://github.com/your-username/clock.git
+### Steps to Set Up:
+1. **Fork the Repository**
+   - Click the "Fork" button on the repository page to create your copy.
+
+2. **Clone Your Fork**
+   - Run the following command in your terminal:
+     ```bash
+     git clone https://github.com/<your-username>/clock.git
+     ```
+
+3. **Navigate to the Project Directory**
+   - Enter the folder created after cloning:
+     ```bash
+     cd clock
+     ```
+
+4. **Build the Project**
+   - Compile the code:
+     ```bash
+     make
+     ```
+   - This will generate the **Clock** executable in the `bin` folder.
+
+5. **Run the Project**
+   - Execute the program:
+     ```bash
+     ./bin/clock
+     ```
