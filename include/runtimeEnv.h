@@ -49,6 +49,12 @@ RuntimeEnvironment* create_environment(size_t capacity);
  */
 void free_environment(RuntimeEnvironment* env);
 
+
+/**
+ * Simple hashing function for strings.
+ */
+unsigned long hash_string(const char* str);
+
 /**
  * Set or update a variable in the environment.
  * - If the key already exists, updates the value.
