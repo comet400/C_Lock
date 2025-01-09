@@ -12,7 +12,7 @@ BUILD_DIR = build
 BIN_DIR = bin
 
 # Source and object file locations
-SRCS = $(SRC_DIR)/ast.c $(SRC_DIR)/lexer.c $(SRC_DIR)/parser.c $(SRC_DIR)/Main.c  $(SRC_DIR)/runtimeEnv.c
+SRCS = $(SRC_DIR)/ast.c $(SRC_DIR)/lexer.c $(SRC_DIR)/parser.c $(SRC_DIR)/Main.c  $(SRC_DIR)/runtimeEnv.c $(SRC_DIR)/runtimeValue.c
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 
 # Header files
