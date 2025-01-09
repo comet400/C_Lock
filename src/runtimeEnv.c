@@ -1,3 +1,15 @@
+/**********************************************
+* File: runtimeEnv.c
+* This file have the runtime environment for the interpreter.
+* the environment is responsible for storing variables and functions.
+* This Code was written by Lukas Fukuoka Vieira.
+* Contact : lukas.fvieira@hotmail.com
+* GitHub:https://github.com/comet400
+************************************************************/
+
+
+
+
 #include "runtimeEnv.h"
 #include <string.h>
 #include <stdio.h>
