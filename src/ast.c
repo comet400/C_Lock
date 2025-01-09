@@ -61,7 +61,14 @@ char* str_duplicate(const char* src) {
         fprintf(stderr, "Memory allocation failed in str_duplicate\n");
         exit(EXIT_FAILURE);
     }
-    strcpy_s(dup, len + 1, src);
+
+        #ifdef _WIN32
+            strcpy_s(dup, len + 1, src);
+        #else
+            strncpy(dup, src, len);
+            dup[len] = '\0';
+        #endif
+
     return dup;
 }
 

@@ -15,7 +15,11 @@
 #include <stdio.h>
 #include "lexer.h"
 #include <sys/stat.h>
+
+#ifdef _WIN32
 #include <windows.h>
+#endif
+
 #include <wchar.h>
 #include <time.h>
 
@@ -369,7 +373,7 @@ RuntimeValue builtin_file_size(RuntimeValue* args, size_t argc) {
 
 
 
-
+#ifdef _WIN32
 /***********************************************************
 * Function: builtin_list_files
 * Description: this function lists files in a directory windows only
@@ -415,7 +419,7 @@ RuntimeValue builtin_list_files(RuntimeValue* args, size_t argc) {
     FindClose(hFind);
     return make_null_value();
 }
-
+#endif
 
 
 

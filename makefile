@@ -1,9 +1,18 @@
+# Detect OS
+ifeq ($(OS),Windows_NT)
+    DETECTED_OS := Windows
+    TARGET_EXTENSION := .exe
+else
+    DETECTED_OS := $(shell uname -s)
+    TARGET_EXTENSION := .elf
+endif
+
 # Compiler and flags
 CC = gcc
 CFLAGS = -Wall -Wextra -Os -march=native -mtune=native -flto -funroll-loops -I$(HDR_DIR)
 
 # Target executable name
-TARGET = clock
+TARGET = clock$(TARGET_EXTENSION)
 
 # Directories
 SRC_DIR = src
@@ -29,14 +38,22 @@ $(BIN_DIR)/$(TARGET): $(OBJS)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Create necessary directories (Windows-compatible)
 directories:
+ifeq ($(DETECTED_OS),Windows)
 	if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
 	if not exist $(BIN_DIR) mkdir $(BIN_DIR)
+else
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BIN_DIR)
+endif
 
-# Clean up build files
 clean:
-	-rm -rf $(BUILD_DIR) $(BIN_DIR)
+ifeq ($(DETECTED_OS),Windows)
+	if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)
+	if exist $(BIN_DIR) rmdir /s /q $(BIN_DIR)
+else
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
+endif
 
 # Rebuild everything from scratch
 rebuild: clean all

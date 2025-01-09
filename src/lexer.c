@@ -154,7 +154,14 @@ char* strndump(const char* str, size_t n) {
         fprintf(stderr, "Memory allocation failed in strndump\n");
         exit(EXIT_FAILURE);
     }
-    strncpy_s(copy, n + 1, str, n);
+
+        #ifdef _WIN32
+            strncpy_s(copy, n + 1, str, n);
+        #else
+            strncpy(copy, str, n);
+            copy[n] = '\0';
+        #endif
+
     copy[n] = '\0';
     return copy;
 }
@@ -303,7 +310,13 @@ Token make_token(const char* value, TokenKind type) {
             fprintf(stderr, "Memory allocation failed for token value\n");
             exit(EXIT_FAILURE);
         }
-        strcpy_s(t.value, len + 1, value);
+            #ifdef _WIN32
+                strcpy_s(t.value, len + 1, value);
+            #else
+                strncpy(t.value, value, len);
+                t.value[len] = '\0';
+            #endif
+
     }
     else {
         t.value = NULL;
