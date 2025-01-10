@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Interpreter.h"
+#include "interpreter.h"
 
 
 /***********************************************************
