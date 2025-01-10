@@ -12,7 +12,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Os -march=native -mtune=native -flto -funroll-loops -I$(HDR_DIR)
 
 # Target executable name
-TARGET = clock$(TARGET_EXTENSION)
+TARGET = cllc$(TARGET_EXTENSION)
 
 # Directories
 SRC_DIR = src
