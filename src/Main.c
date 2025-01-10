@@ -93,7 +93,12 @@ void init_interpreter()
 
         currentLength += lineLen;
         fullCode = sourceCode;
+        
+        #ifdef _WIN32
         system("cls");
+        #else
+        system("clear");
+        #endif
     }
 
     // Null-terminate the string
