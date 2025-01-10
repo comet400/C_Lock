@@ -25,10 +25,21 @@ void init_interpreter()
 {
 	bool debug = false;
     char* fullCode = (char*)"";
+
+    #ifdef _WIN32
     system("cls");
+    #else
+    system("clear")
+    #endif
     // 1) Prompt user for input
     //change print color to green
+    #ifdef _WIN32
     system("color 0A");
+#else
+    printf("\033[0;32m");  // Set text color to green
+    fflush(stdout);        // Flush the output buffer
+#endif
+
 
     size_t bufferSize = INITIAL_BUFFER_SIZE;
     size_t currentLength = 0;
