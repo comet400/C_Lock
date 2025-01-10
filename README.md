@@ -64,7 +64,7 @@ or any other C compiler you might have.
 
 After instalation, you should be able to receive, an .exe file or .elf depending on your OS.
 
-### Runtime and Terminal mode
+# Runtime and Terminal mode
 If you simply open or double click the exe file, you will enter the terminal mode. This will allow you to write lines of code and enter them by pressing enter.
 After you are completely done, in an empty line, you may use the command "END" in order to compile the code normally or "DEBUG" to see all AST nodes and tokens.
 To use runtime mode, simply write a script yourself using Clock syntax, then, using the cllc (C Lock Language Compiler) command, put the parameter.
