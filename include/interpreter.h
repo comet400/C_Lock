@@ -15,7 +15,7 @@
 #define INTERPRETER_H
 
 #include "ast.h"
-#include "RuntimeEnv.h"
+#include "runtimeEnv.h"
 
 
 /**
