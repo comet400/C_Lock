@@ -29,7 +29,7 @@ void init_interpreter()
     #ifdef _WIN32
     system("cls");
     #else
-    system("clear")
+    system("clear");
     #endif
     // 1) Prompt user for input
     //change print color to green
