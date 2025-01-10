@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "lexer.h"
 #include "parser.h"
+#include "interpreter.h"
 
 void print_tokens(const TokenArray* tokens) {
     printf("=== TOKENS ===\n");
