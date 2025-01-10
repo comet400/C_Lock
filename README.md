@@ -1,90 +1,84 @@
 # C Lock Programming Language
 
-**C Lock** (short for **C Language with LOCKED code**) is a programming language designed and built from scratch in C that will run and interpret itself using encrypted files, 
-without relying on external frameworks (for the language, the encryption will be handled by standard OPENSSL AES-256 algorithms.
-It is optimized for size, simplicity, and ease of understanding, making it an excellent tool for developers who want a lightweight, 
-secure, and highly customizable language. (it is a work in progress at the moment).
+**C Lock** (short for **C Language with LOCKED code**) is a secure and innovative programming language built from scratch in **C**. It combines **lightweight execution**, **encryption with AES-256**, and a mix of **Python-C-inspired syntax**, offering a customizable and secure coding experience.
+
+Whether you want to explore **low-level language design**, **secure your scripts**, or learn about **interpreters**, C Lock is designed to empower developers while prioritizing **code privacy**.
+
+---
 
 ## 🌟 Features
 
-- **Built from Scratch**: No frameworks, just pure C, and standard libraries.
-- **Simple Syntax**: Focused on being syntax friendly while maintaining power for advanced users.
-- **Lightweight**: Designed to be small, features to make it faster like bytecode generation and JIT compilations is a work in progress.
-- **Secure Execution**: Includes features to enforce safe and predictable program behavior, with error warnings.
-- **Custom Interpreter**: Built specifically for C Lock, enabling seamless language interpretation and execution. (will be refactored to be turned into a compiler).
+- **Built from Scratch**: No frameworks—just pure C and standard libraries.
+- **Secure by Design**: Uses AES-256 to ensure code privacy and prevent tampering.
+- **Lightweight**: Optimized for simplicity and size, with plans for bytecode and JIT compilation.
+- **Custom Interpreter**: Reads encrypted `.clk` files for secure execution.
+- **Python-C Syntax**: Combines Python's simplicity with C's power.
 
-## 📖 Why C Lock?
+---
 
-C Lock was born from a desire of hiding source code, making it harder for attackers while also maintaining an easy program collaboration despite security features.
+## Why Choose C Lock?
 
-1. Simplify the encryption processes, also customizing the language itself with it.
-2. Offer a secure and controlled environment for experimenting with low-level concepts. (enviroment will be hard coded for MVP).
-3. Inspire and empower developers to create their own tools and languages, while ensuring their code privacy.
+C Lock is designed for developers who need:
+1. **Privacy**: Hide and encrypt source code to protect intellectual property.
+2. **Experimentation**: A secure environment for exploring language design.
+3. **Simplicity**: A beginner-friendly yet powerful language.
 
-## 🔧 How It Works
+---
 
-### Interpreter
-The C Lock compiler (`clock`) converts `.clk` source files into executable code using a custom-built architecture. It features:
-- **Lexical Analysis**: Tokenizing the input code.
-- **Parsing**: Building an Abstract Syntax Tree (AST).
-- **Code Generation**: Interpreting the AST into readable instructions.
-- **Built in terminal**: It is capable of encryption of any kinds of files easily, even for beginners.
+## How It Works
 
-### Code Example
-Here’s a quick example of what writing in C Lock might look like:
+### Interpreter Workflow
 
-```cl
-//function listing() {
-    list shop = {2, 7, 11, 15, 20, 35, 40, 50, 65, 80};
-    make target = 100;
-    make i = 0;
-    make j = 0;
+The C Lock compiler (`clock`) converts `.clk` source files into secure, executable instructions:
+1. **Lexical Analysis**: Tokenizes input code.
+2. **Parsing**: Builds an Abstract Syntax Tree (AST).
+3. **Code Generation**: Interprets the AST into instructions.
+4. **Encryption**: Protects source code using AES-256 encryption.
 
-    while (i < 10) {
-        make j = i + 1; // Start j from i + 1 to avoid duplicate pairs
-        while (j < 10) {
-            if (shop[i] + shop[j] == target) {
-                write(shop[i]);
-                write(shop[j]);
-                return "it works see?"; // Stop both loops by returning from the function
-            }
-            j += 1;
-        }
-        i += 1;
-    }
-}
+---
 
-lukas = listing(); // normal variable init
-write(lukas);
+## Quick Start
 
-make x = 10; // safe variable init version
-switch (x) {
-when 10:
-write("yes we have switch too");
-stop;
-default:
-write("if its not 10 we go here");
-stop;
-}
+### Installation
 
-return "this is the master return"; // master return
-end
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/comet400/Clock.git
+   cd Clock
+`
+
+2. Build the intepreter
+   
+Linux
+   ```bash
+   make
 ```
 
-# However the interpreter would only compile and understand the code like this
-
-``` cl
-   ]~  * E   oQvT@  R}ԏ  T e 	 M  o5    z   y  j `\  Y / O I    [ ; Y]}@   d  ,  u!   °ݙ)   > X~ KYK   w ~^m    Ʒ  (0#Gg  o T  } єX e  P w jt '] pyW Y   {m	   {  f # ; u 'AzVYK9 $cN    <F   ;  o`i  V> .7     p    P[˖  8~[  Og<  c ١ SDL3s  k   ˢ dA   J  P   O I r ^/ 7  }v  M Z    ?t 0 ! >vg ivˈ
- L8  4 ay- w /s' L Ćɵ   p:G   6k)   e2: F) l_  #    ^H} =  b!64AɈ
-FI 4aWM   qP > E  :;k   u/C  s >) [ d %24܄v2 5 \  9 v!
- A 7]LnH i r   Vߘ  wnR. wDF   %i)    d7n 2;{ 6 
- ~ !  (-' ' F b  z M$e  YQ  mE     q 1 Z'QhN  iRB
- 8   {   I   a mT   ] $    FA  K 3 J  ^e   Hq ^ it& U g8naU      G  P jd q_  q  :a׆XVN@  ǞJ
-¦   Eq B g}{ W Wd & ,\ 5 ~  V ?       S  
-rj> R   2 ǲhM D   6G JS]  ܊W T S 0B l^q <   L   c Rs F  X Qm v  e y *eSm4_
-:( p
-hGM/ : pe;  >  S< jи  E >? 'Ox  h' Ÿc} z
-ex҄B[񐹃 yp&7 #4 ^
-
+Windows
+```bash
+     mingw32-make
 ```
 
+or any other C compiler you might have.
+
+After instalation, you should be able to receive, an .exe file or .elf depending on your OS.
+
+### Runtime and Terminal mode
+If you simply open or double click the exe file, you will enter the terminal mode. This will allow you to write lines of code and enter them by pressing enter
+After you are completely done, in an empty line, you may use the command "END" in order to compile the code normally or "DEBUG" to see all AST nodes and tokens.
+
+
+## Use Cases
+Proprietary Scripts: Secure your code with AES-256 encryption.
+Learning Resource: Dive into interpreters and encryption.
+Lightweight Applications: Use C Lock for rapid, secure development.
+
+#Contributing
+Contributions are welcome! Here's how you can help:
+
+Check out the issues.
+Fork the repository and submit a pull request.
+Explore beginner-friendly tasks tagged with good first issue.
+
+#🛡️ License
+MIT License - Free for personal and commercial use.
