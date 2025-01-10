@@ -72,10 +72,10 @@ RuntimeEnvironment* create_environment(size_t capacity) {
 
 
 /***********************************************************
-* Function: strndump
-* Description: this function duplicates a string
-* Parameters: const char* src, size_t len
-* Return: char*
+* Function: builtin_timestamp
+* Description: this function allows the user to use current timestamp
+* Parameters: RuntimeValue* args, size_t argc
+* Return: RuntimeValue
 * ***********************************************************/
 RuntimeValue builtin_timestamp(RuntimeValue* args, size_t argc) {
     if (argc != 0) {
