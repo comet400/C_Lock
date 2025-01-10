@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "interpreter.h"
+#include "Interpreter.h"
 
 
 /***********************************************************
@@ -1220,7 +1220,7 @@ RuntimeValue eval_binary_expr(ASTNode* node, RuntimeEnvironment* env) {
 
     else if (strcmp(op, "==") == 0 || strcmp(op, "!=") == 0 ||
         strcmp(op, "<") == 0 || strcmp(op, ">") == 0 ||
-        strcmp(op, "<=") == 0 || strcmp(op, ">=") == 0) {
+		strcmp(op, "<=") == 0 || strcmp(op, ">=") == 0 || strcmp(op, "&&") == 0 || strcmp(op, "||") == 0) {
         return evaluate_comparison(op, leftVal, rightVal);
     }
 
@@ -1244,6 +1244,17 @@ RuntimeValue evaluate_comparison(const char* op, RuntimeValue leftVal, RuntimeVa
         return make_bool_value(false);
     }
 
+	if (strcmp(op, "&&") == 0) {
+		bool left = (leftVal.type == RUNTIME_VALUE_BOOL && leftVal.bool_val);
+		bool right = (rightVal.type == RUNTIME_VALUE_BOOL && rightVal.bool_val);
+		return make_bool_value(left && right);
+	}
+	else if (strcmp(op, "||") == 0) {
+		bool left = (leftVal.type == RUNTIME_VALUE_BOOL && leftVal.bool_val);
+		bool right = (rightVal.type == RUNTIME_VALUE_BOOL && rightVal.bool_val);
+		return make_bool_value(left || right);
+	}
+   
     switch (leftVal.type) {
     case RUNTIME_VALUE_INT: {
         long left = leftVal.int_val;
