@@ -45,7 +45,6 @@ The C Lock compiler (`clock`) converts `.clk` source files into secure, executab
    ```bash
    git clone https://github.com/comet400/Clock.git
    cd Clock
-`
 
 2. Build the intepreter
    
