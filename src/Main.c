@@ -73,7 +73,13 @@ void init_interpreter()
         }
 
         // Append line to sourceCode
+        #if defined(_WIN32) || defined(__STDC_LIB_EXT1__)
         strcpy_s(sourceCode + currentLength, bufferSize - currentLength, line);
+        #else
+        strncpy(sourceCode + currentLength, line, bufferSize - currentLength);
+        sourceCode[bufferSize - 1] = '\0';
+        #endif
+
         currentLength += lineLen;
         fullCode = sourceCode;
         system("cls");

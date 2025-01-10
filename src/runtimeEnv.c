@@ -522,8 +522,10 @@ void add_file_built_ins(RuntimeEnvironment* env)
     RuntimeValue sizeFunction = make_builtin_function(builtin_file_size);
     env_set(env, "file_size", sizeFunction);
 
+    #ifdef _WIN32
     RuntimeValue listFunction = make_builtin_function(builtin_list_files);
     env_set(env, "list_files", listFunction);
+    #endif
 
     RuntimeValue deleteFunction = make_builtin_function(builtin_delete_file);
     env_set(env, "delete_file", deleteFunction);
