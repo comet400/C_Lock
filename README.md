@@ -6,7 +6,7 @@ Whether you want to explore **low-level language design**, **secure your scripts
 
 ---
 
-## 🌟 Features
+## Features
 
 - **Built from Scratch**: No frameworks—just pure C and standard libraries.
 - **Secure by Design**: Uses AES-256 to ensure code privacy and prevent tampering.
@@ -42,14 +42,16 @@ The C Lock compiler (`clock`) converts `.clk` source files into secure, executab
 ### Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/comet400/Clock.git
-   cd Clock
+```bash
+git clone https://github.com/comet400/Clock.git
+cd Clock
+```
+
 
 2. Build the intepreter
    
 Linux
-   ```bash
+```bash
    make
 ```
 
@@ -65,6 +67,10 @@ After instalation, you should be able to receive, an .exe file or .elf depending
 ### Runtime and Terminal mode
 If you simply open or double click the exe file, you will enter the terminal mode. This will allow you to write lines of code and enter them by pressing enter
 After you are completely done, in an empty line, you may use the command "END" in order to compile the code normally or "DEBUG" to see all AST nodes and tokens.
+
+## Getting started
+All the rules for the language and how it works are easily found in the documents README. If you want to know which built in functions are already implemented and how they work
+you can easily find them in the documents.
 
 
 ## Use Cases
