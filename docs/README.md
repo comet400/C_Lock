@@ -21,7 +21,7 @@ C Lock introduces a unique blend of readability and structure while maintaining 
   variable4 = true;
   nullVariable; //initializes it to null if no assigment is provided
   make variable5 = 0b0101101; // binary and hex are converted to int
-  make variable6 = 0f112f; // safe variable declaration
+  make variable6 = 0x112f; // safe variable declaration
   ```
 
   Safe Variable Initialization: Use the make keyword for explicitly declaring variables, ensuring cleaner and safer code. if make is used without an assigment "=" an error will be received.
