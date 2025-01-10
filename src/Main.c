@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "lexer.h"
 #include "parser.h"
 #include "interpreter.h"
+#pragma warning(disable : 4996) 
 
+#define INITIAL_BUFFER_SIZE 1024
+
+// A small helper to print the tokens for debugging
 void print_tokens(const TokenArray* tokens) {
     printf("=== TOKENS ===\n");
     for (size_t i = 0; i < tokens->size; i++) {
@@ -16,16 +21,158 @@ void print_tokens(const TokenArray* tokens) {
     printf("=== END TOKENS ===\n\n");
 }
 
-int main(void)
+void init_interpreter()
 {
-	const char* source = "make lukas = 10; if (lukas == 10) { return 10;} else { return 40;} make bob = 0b1010;";
-	TokenArray tokens = tokenize(source);
-	print_tokens(&tokens);
+	bool debug = false;
+    char* fullCode = (char*)"";
+    system("cls");
+    // 1) Prompt user for input
+    //change print color to green
+    system("color 0A");
+
+    size_t bufferSize = INITIAL_BUFFER_SIZE;
+    size_t currentLength = 0;
+    char* sourceCode = (char*)malloc(bufferSize);
+    if (!sourceCode) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+    }
+
+    while (1) {
+        printf("%s\n", fullCode);
+        printf(">> "); // Use '\r' to overwrite the current line
+        fflush(stdout);  // Ensure the prompt is displayed immediately
+
+        char line[256];
+        if (!fgets(line, sizeof(line), stdin)) {
+            break; // Stop on input error
+        }
+
+        // Check for 'END' to stop input
+        if (strncmp(line, "END", 3) == 0 && (line[3] == '\n' || line[3] == '\0')) {
+            printf("\033[0;36m\n");
+            break;
+        }
+        else if (strncmp(line, "DEBUG", 5) == 0 && (line[5] == '\n' || line[5] == '\0')) {
+            printf("\033[0;36m\n");
+            debug = true;
+            break;
+        }
+
+        size_t lineLen = strlen(line);
+        // Resize buffer if needed
+        if (currentLength + lineLen + 1 > bufferSize) {
+            bufferSize *= 2;
+            char* newBuffer = (char*)realloc(sourceCode, bufferSize);
+            if (!newBuffer) {
+                fprintf(stderr, "Memory allocation failed during buffer resize.\n");
+                free(sourceCode);
+                exit(1);
+            }
+            sourceCode = newBuffer;
+        }
+
+        // Append line to sourceCode
+        strcpy_s(sourceCode + currentLength, bufferSize - currentLength, line);
+        currentLength += lineLen;
+        fullCode = sourceCode;
+        system("cls");
+    }
+
+    // Null-terminate the string
+    sourceCode[currentLength] = '\0';
+
+
+    // Null-terminate the string
+    sourceCode[currentLength] = '\0';
+
+    if (currentLength == 0) {
+        fprintf(stderr, "No input provided.\n");
+		printf("\033[0;37m");
+        free(sourceCode);
+        return;
+    }
+
+    // 2) Tokenize the source string
+    printf("Program Output: \n\n");
+    TokenArray tokens = tokenize(sourceCode);
+
+	if (debug) print_tokens(&tokens);
+
+    // 3) Create a parser and parse into an AST
     Parser parser = create_parser(&tokens);
     ASTNode* root = parse_program(&parser);
-    print_ast(root,0);
-    free_token_array(&tokens);
+
+	if (debug) print_ast(root, 0);
+
+    // 4) Interpret (execute) the AST
+    interpret(root);
+
+
+    // 5) Clean up: free AST, tokens, etc.
     free_ast_node(root);
-	return 0;
+    free_token_array(&tokens);
+    free(sourceCode);
+
+    //go back to white
+    printf("\033[0;37m");
 }
+
+
+int main(int argc, char* argv[]) {
+    if (argc == 2) {
+        // File mode
+        const char* filename = argv[1];
+        FILE* file = fopen(filename, "r");
+        if (!file) {
+            perror("Error opening file");
+            return 1;
+        }
+
+        fseek(file, 0, SEEK_END);
+        long length = ftell(file);
+        fseek(file, 0, SEEK_SET);
+
+        char* sourceCode = (char*)malloc(length + 1);
+        if (!sourceCode) {
+            fprintf(stderr, "Memory allocation failed.\n");
+            fclose(file);
+            return 1;
+        }
+
+        fread(sourceCode, 1, length + 1, file);
+        sourceCode[length] = '\0';
+        fclose(file);
+
+        printf("\033[0;36m\n");
+        printf("Program Output: \n\n");
+
+        TokenArray tokens = tokenize(sourceCode);
+
+        Parser parser = create_parser(&tokens);
+        ASTNode* root = parse_program(&parser);
+
+        interpret(root);
+
+        // Clean up
+        free_ast_node(root);
+        free_token_array(&tokens);
+        free(sourceCode);
+		printf("\033[0;37m");
+    }
+    else {
+        // Interactive mode
+        init_interpreter();
+        getchar();
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
 
