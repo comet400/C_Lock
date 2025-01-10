@@ -11,7 +11,7 @@ Whether you want to explore **low-level language design**, **secure your scripts
 - **Built from Scratch**: No frameworks—just pure C and standard libraries.
 - **Secure by Design**: Uses AES-256 to ensure code privacy and prevent tampering.
 - **Lightweight**: Optimized for simplicity and size, with plans for bytecode and JIT compilation.
-- **Custom Interpreter**: Reads encrypted `.clk` files for secure execution.
+- **Custom Interpreter**: Reads encrypted `.clk` files for secure execution (works with any kind of text file).
 - **Python-C Syntax**: Combines Python's simplicity with C's power.
 
 ---
@@ -67,6 +67,11 @@ After instalation, you should be able to receive, an .exe file or .elf depending
 ### Runtime and Terminal mode
 If you simply open or double click the exe file, you will enter the terminal mode. This will allow you to write lines of code and enter them by pressing enter
 After you are completely done, in an empty line, you may use the command "END" in order to compile the code normally or "DEBUG" to see all AST nodes and tokens.
+To use runtime mode, simply write a script yourself using Clock syntax, then, using the cllc (C Lock Language Compiler) command, put the parameter.
+
+```bash
+cllc test.clk
+```
 
 ## Getting started
 All the rules for the language and how it works are easily found in the documents README. If you want to know which built in functions are already implemented and how they work
