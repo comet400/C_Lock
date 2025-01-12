@@ -120,6 +120,7 @@ void init_interpreter()
     TokenArray tokens = tokenize(sourceCode);
 
 	if (debug) print_tokens(&tokens);
+    
 
     // 3) Create a parser and parse into an AST
     Parser parser = create_parser(&tokens);
@@ -127,14 +128,22 @@ void init_interpreter()
 
 	if (debug) print_ast(root, 0);
 
+    ASTNode** flat_list = NULL;
+    size_t flat_count = 0;
+    flatten_ast(root, &flat_list, &flat_count);
+
+    if (debug) print_flattened_ast(flat_list, flat_count);
+    
     // 4) Interpret (execute) the AST
     interpret(root);
 
 
     // 5) Clean up: free AST, tokens, etc.
+
     free_ast_node(root);
     free_token_array(&tokens);
     free(sourceCode);
+    free(flat_list);
 
     //go back to white
     printf("\033[0;37m");

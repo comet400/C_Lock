@@ -157,4 +157,7 @@ void print_ast(const ASTNode* node, int depth);
 
 char* str_duplicate(const char* src);
 
+void flatten_ast(const ASTNode* root, ASTNode*** flat_list, size_t* count);
+void print_flattened_ast(ASTNode** flat_list, size_t flat_count);
+
 #endif // AST_H

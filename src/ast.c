@@ -284,3 +284,53 @@ void print_ast(const ASTNode* node, int depth) {
         print_ast(node->children[i], depth + 1);
     }
 }
+
+
+
+
+
+
+/***********************************************************
+ * Function: flatten_ast
+ * Description: Flattens the AST into a flat list of nodes.
+ * Parameters: const ASTNode* root, ASTNode*** flat_list, size_t* count
+ * Return: void
+ ***********************************************************/
+void flatten_ast(const ASTNode* root, ASTNode*** flat_list, size_t* count) {
+    if (!root) return;
+
+    // Add the current node to the flat list
+    *flat_list = (ASTNode**)realloc(*flat_list, sizeof(ASTNode*) * (*count + 1));
+    if (!*flat_list) {
+        fprintf(stderr, "Memory allocation failed in flatten_ast\n");
+        exit(EXIT_FAILURE);
+    }
+    (*flat_list)[*count] = (ASTNode*)root;
+    (*count)++;
+
+    // Recursively flatten children
+    for (size_t i = 0; i < root->child_count; i++) {
+        flatten_ast(root->children[i], flat_list, count);
+    }
+}
+
+
+
+
+
+
+/***********************************************************
+ * Function: print_flattened_ast
+ * Description: Prints the flattened AST for debugging.
+ * Parameters: ASTNode** flat_list, size_t flat_count
+ * Return: void
+ ***********************************************************/
+void print_flattened_ast(ASTNode** flat_list, size_t flat_count) {
+    printf("\n=== FLATTENED AST ===\n");
+    for (size_t i = 0; i < flat_count; i++) {
+        const ASTNode* node = flat_list[i];
+        printf("[%3zu] Type = %s, Line = %zu, Column = %zu, Operator = %s\n",
+            i, ASTNodeTypeNames[node->type], node->line, node->column, node->operator_);
+    }
+    printf("=== END FLATTENED AST ===\n\n");
+}
