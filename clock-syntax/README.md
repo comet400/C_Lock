@@ -1,65 +1,109 @@
-# clock-syntax README
+# Clock-Syntax-Highlighter
+---
+## Overview
+Clock-Syntax is a Visual Studio Code extension providing syntax highlighting for the Clock Programming Language.
 
-This is the README for your extension "clock-syntax". After writing up a brief description, we recommend including the following sections.
+## Demo Screenshots
+![image](https://github.com/user-attachments/assets/4cd2ca21-ddde-4b1a-9721-dcaa5fa06245)
 
-## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
 
-For example if there is an image subfolder under your extension project workspace:
+## 🌟 Features
+## Syntax Highlighting Capabilities
 
-\!\[feature X\]\(images/feature-x.png\)
+### Keywords Support:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+if
 
-## Requirements
+else
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+while
 
-## Extension Settings
+for
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+return
+---
+### Declaration Types:
 
-For example:
+make
 
-This extension contributes the following settings:
+list
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+const
+---
+### Supported Literals:
 
-## Known Issues
+Decimal numbers
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Binary numbers (0b)
 
-## Release Notes
+Hexadecimal numbers (0x)
 
-Users appreciate release notes as you update your extension.
+---
+## Code Example
 
-### 1.0.0
+```clk
+// Demonstration of Clock Language Features
+make age = 25;                   // Decimal declaration
+make binary_value = 0b1010;      // Binary literal
+make hex_color = 0x1A3F;         // Hexadecimal value
 
-Initial release of ...
+function calculateSum(a, b) {
+    return a + b;
+}
 
-### 1.0.1
+results = calculateSum(age,binary_value);
+write(results);
+```
+---
 
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+## 🛠 Technical Specifications
+Supported VS Code Versions
+Minimum: ^1.96.0
+File Extensions
+.clk
 
 ---
 
-## Working with Markdown
+## 🔍 Highlighting Details
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+Function name recognition
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+Escape sequence handling
 
-## For more information
+Single and multi-line comment support
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+Comprehensive punctuation tracking
 
-**Enjoy!**
+---
+
+## 🚧 Current Limitations
+
+No advanced error checking
+
+Preliminary syntax support
+
+---
+
+# 📦 Installation
+Open VS Code
+Navigate to Extensions
+Search "Clock-Syntax"
+Click Install
+
+# 🤝 Contributing
+Open to community contributions
+
+Report issues on GitHub
+
+Pull requests welcome
+
+# 📌 Future Roadmap
+
+ Advanced error detection
+ 
+ Linting support
+ 
+ Improved identifier recognition
+ 
+ Enhanced autocomplete
