@@ -145,16 +145,18 @@ int main(int argc, char* argv[]) {
     if (argc == 2) {
         // File mode
         const char* filename = argv[1];
-        FILE* file = fopen(filename, "r");
+        FILE* file = fopen(filename, "rb");  // Open in binary mode
         if (!file) {
             perror("Error opening file");
             return 1;
         }
 
+        // Get file size
         fseek(file, 0, SEEK_END);
         long length = ftell(file);
         fseek(file, 0, SEEK_SET);
 
+        // Allocate memory for file content (including null terminator)
         char* sourceCode = (char*)malloc(length + 1);
         if (!sourceCode) {
             fprintf(stderr, "Memory allocation failed.\n");
@@ -162,9 +164,18 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        fread(sourceCode, 1, length + 1, file);
-        sourceCode[length] = '\0';
+        // Read file content
+        size_t bytesRead = fread(sourceCode, 1, length, file);
         fclose(file);
+
+        if (bytesRead != length) {
+            fprintf(stderr, "Error reading file: expected %ld bytes, got %zu bytes.\n", length, bytesRead);
+            free(sourceCode);
+            return 1;
+        }
+
+        // Null-terminate the string
+        sourceCode[length] = '\0';
 
         printf("\033[0;36m\n");
         printf("Program Output: \n\n");
@@ -180,7 +191,6 @@ int main(int argc, char* argv[]) {
         free_ast_node(root);
         free_token_array(&tokens);
         free(sourceCode);
-		printf("\033[0;37m");
     }
     else {
         // Interactive mode
