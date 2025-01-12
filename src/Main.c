@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Read file content
-        size_t bytesRead = fread(sourceCode, 1, length, file);
+        size_t bytesRead = fread(sourceCode, 1, length+1, file);
         fclose(file);
 
         if (bytesRead != length) {
