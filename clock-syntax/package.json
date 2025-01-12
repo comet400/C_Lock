@@ -1,0 +1,34 @@
+{
+  "name": "clock-syntax",
+  "displayName": "Clock-Syntax",
+  "description": "Clock Syntax Highlighter",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "clock",
+        "extensions": [".clk"],
+        "aliases": ["Clock", "clock"]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "clock",
+        "scopeName": "source.clk",
+        "path": "./syntaxes/clock.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "clock",
+        "path": "./snippets/clock.json"
+      }
+    ]
+  }
+}

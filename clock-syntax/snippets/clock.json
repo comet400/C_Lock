@@ -1,0 +1,123 @@
+{
+    "Normal Variable Initialization": {
+      "prefix": "var",
+      "body": [
+        "$1 = $2;"
+      ],
+      "description": "Normal variable initialization"
+    },
+    "Safe Variable Declaration": {
+      "prefix": "make",
+      "body": [
+        "make $1 = $2;"
+      ],
+      "description": "Declare a variable safely"
+    },
+    "Array Initialization": {
+      "prefix": "list",
+      "body": [
+        "list $1 = { $2 };"
+      ],
+      "description": "Declare a list with mixed datatypes"
+    },
+    "While Loop": {
+      "prefix": "while",
+      "body": [
+        "while ($3) {",
+        "\t$4",
+        "}"
+      ],
+      "description": "Standard while loop"
+    },
+    "For Loop": {
+      "prefix": "for",
+      "body": [
+        "for ($1 to $2) {",
+        "\t$3",
+        "}"
+      ],
+      "description": "Custom for loop"
+    },
+    "If Statement": {
+      "prefix": "if",
+      "body": [
+        "if ($1) {",
+        "\t$2",
+        "}"
+      ],
+      "description": "If statement"
+    },
+    "Switch Statement": {
+      "prefix": "switch",
+      "body": [
+        "switch ($1) {",
+        "\twhen $2:",
+        "\t\t$3",
+        "\t\tstop;",
+        "\tdefault:",
+        "\t\t$4",
+        "\t\tstop;",
+        "}"
+      ],
+      "description": "Switch case statement"
+    },
+    "Function Declaration": {
+      "prefix": "function",
+      "body": [
+        "function $1($2) {",
+        "\t$3",
+        "}"  
+      ],
+      "description": "Define a function"
+    },
+    "Return Statement": {
+      "prefix": "return",
+      "body": [
+        "return $1;"
+      ],
+      "description": "Return a value and stop execution"
+    },
+    "Write Function": {
+      "prefix": "write",
+      "body": [
+        "write($1);"
+      ],
+      "description": "Print output to console"
+    },
+    "Input Function": {
+      "prefix": "input",
+      "body": [
+        "$1 = input($2);"
+      ],
+      "description": "Take input from user"
+    },
+    "Date Function": {
+      "prefix": "date",
+      "body": [
+        "$1 = date_time();"
+      ],
+      "description": "Get the current date and time"
+    },
+    "File Write": {
+      "prefix": "write_file",
+      "body": [
+        "write_file(\"$1\", \"$2\");"
+      ],
+      "description": "Write content to a file"
+    },
+    "File Append": {
+      "prefix": "append_file",
+      "body": [
+        "append_file(\"$1\", \"$2\");"
+      ],
+      "description": "Append content to a file"
+    },
+    "File Read": {
+      "prefix": "read_file",
+      "body": [
+        "$1 = read_file(\"$2\");"
+      ],
+      "description": "Read content from a file"
+    }
+  }
+  
