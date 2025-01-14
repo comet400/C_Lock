@@ -21,11 +21,11 @@ BUILD_DIR = build
 BIN_DIR = bin
 
 # Source and object file locations
-SRCS = $(SRC_DIR)/ast.c $(SRC_DIR)/lexer.c $(SRC_DIR)/parser.c $(SRC_DIR)/Main.c  $(SRC_DIR)/runtimeEnv.c $(SRC_DIR)/runtimeValue.c $(SRC_DIR)/interpreter.c
+SRCS = $(SRC_DIR)/bytecode.c $(SRC_DIR)/ast.c $(SRC_DIR)/lexer.c $(SRC_DIR)/parser.c $(SRC_DIR)/Main.c  $(SRC_DIR)/runtimeEnv.c $(SRC_DIR)/runtimeValue.c $(SRC_DIR)/interpreter.c 
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 
 # Header files
-HEADERS = $(HDR_DIR)/ast.h $(HDR_DIR)/lexer.h $(HDR_DIR)/parser.h $(HDR_DIR)/runtimeEnv.h $(HDR_DIR)/runtimeValue.h $(HDR_DIR)/interpreter.h 
+HEADERS = $(HDR_DIR)/bytecode.h $(HDR_DIR)/ast.h $(HDR_DIR)/lexer.h $(HDR_DIR)/parser.h $(HDR_DIR)/runtimeEnv.h $(HDR_DIR)/runtimeValue.h $(HDR_DIR)/interpreter.h  
 
 # Default rule to build the target
 all: directories $(BIN_DIR)/$(TARGET)

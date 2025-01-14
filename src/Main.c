@@ -4,6 +4,8 @@
 #include "lexer.h"
 #include "parser.h"
 #include "interpreter.h"
+#include "bytecode.h"
+
 #pragma warning(disable : 4996) 
 
 #define INITIAL_BUFFER_SIZE 1024
@@ -139,7 +141,13 @@ void init_interpreter()
 
 
     // 5) Clean up: free AST, tokens, etc.
-
+    BytecodeInstruction* bytecode = malloc(sizeof(BytecodeInstruction) * 1024);
+    size_t bytecode_count = 0;
+    size_t bytecode_capacity = 1024;
+    generate_bytecode(root, &bytecode, &bytecode_count, &bytecode_capacity);
+    if (debug) print_byteCode(bytecode, bytecode_count);
+    free(bytecode);
+    
     free_ast_node(root);
     free_token_array(&tokens);
     free(sourceCode);
