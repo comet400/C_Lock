@@ -62,7 +62,7 @@ Windows
 
 or any other C compiler you might have.
 
-After instalation, you should be able to receive, an .exe file or .elf depending on your OS.
+After installation, you should be able to receive, an .exe file or .elf depending on your OS.
 
 # Runtime and Terminal mode
 If you simply open or double click the exe file, you will enter the terminal mode. This will allow you to write lines of code and enter them by pressing enter.
