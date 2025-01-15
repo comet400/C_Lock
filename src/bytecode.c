@@ -173,6 +173,10 @@ void generate_binary_expr_bytecode(const ASTNode* node, BytecodeInstruction** by
 	else if (strcmp(node->operator_, "||") == 0) {
 		instr.opcode = OP_OR_;
 	}
+	else if (strcmp(node->operator_, ",") == 0) {
+		// Ignore comma operator
+		return;
+	}
     else {
         fprintf(stderr, "Unsupported binary operator: %s\n", node->operator_);
         exit(EXIT_FAILURE);
@@ -180,6 +184,12 @@ void generate_binary_expr_bytecode(const ASTNode* node, BytecodeInstruction** by
 
     (*bytecode)[(*bytecode_count)++] = instr;
 }
+
+
+
+
+
+
 
 
 
@@ -225,6 +235,97 @@ void generate_identifier_bytecode(const ASTNode* node, BytecodeInstruction** byt
 
 
 
+/***********************************************************
+ * Function: generate_for_bytecode
+ * Description: this function is responsible for generating bytecode for a 'for' loop.
+ * Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+ * Return: void
+ * ***********************************************************/
+void generate_for_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+    if (!node || node->child_count != 3) {
+        fprintf(stderr, "Invalid AST structure for 'for' loop.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Extract components: start, end, and body
+    const ASTNode* start_node = node->children[0];  // Start value
+    const ASTNode* end_node = node->children[1];    // End value
+    const ASTNode* body_node = node->children[2];   // Loop body
+
+    const char* loop_var_name = "i"; // Loop variable name (default for simplicity)
+
+    // 1. Initialization: i = start
+    generate_bytecode(start_node, bytecode, bytecode_count, bytecode_capacity);
+    BytecodeInstruction init_instr = {
+        .opcode = OP_STORE_VAR_,
+        .operand.string_operand = loop_var_name
+    };
+    (*bytecode)[(*bytecode_count)++] = init_instr;
+
+    // 2. Condition check: i < end
+    size_t condition_index = *bytecode_count;
+    BytecodeInstruction load_var_instr = {
+        .opcode = OP_LOAD_VAR_,
+        .operand.string_operand = loop_var_name
+    };
+    (*bytecode)[(*bytecode_count)++] = load_var_instr;
+
+    generate_bytecode(end_node, bytecode, bytecode_count, bytecode_capacity);
+
+    BytecodeInstruction condition_instr = { .opcode = OP_LESS };
+	condition_instr.operand.binary.left_reg = *bytecode_count - 2;
+	condition_instr.operand.binary.right_reg = *bytecode_count - 1;
+    (*bytecode)[(*bytecode_count)++] = condition_instr;
+
+    // Placeholder for JUMP_TO_IF_FALSE
+    BytecodeInstruction jump_if_false_instr = {
+        .opcode = OP_JUMP_TO_IF_FALSE,
+        .operand.int_operand = -1 // Placeholder
+    };
+    size_t jump_if_false_index = *bytecode_count;
+    (*bytecode)[(*bytecode_count)++] = jump_if_false_instr;
+
+    // 3. Loop body
+    generate_bytecode(body_node, bytecode, bytecode_count, bytecode_capacity);
+
+    // 4. Increment: i = i + 1
+    BytecodeInstruction load_loop_var_instr = {
+        .opcode = OP_LOAD_VAR_,
+        .operand.string_operand = loop_var_name
+    };
+    (*bytecode)[(*bytecode_count)++] = load_loop_var_instr;
+
+    BytecodeInstruction push_constant_instr = {
+        .opcode = OP_PUSH_INT,
+        .operand.int_operand = 1 // Increment
+    };
+    (*bytecode)[(*bytecode_count)++] = push_constant_instr;
+
+    BytecodeInstruction increment_instr = { .opcode = OP_ADD_ };
+	increment_instr.operand.binary.left_reg = *bytecode_count - 2;
+	increment_instr.operand.binary.right_reg = *bytecode_count - 1;
+    (*bytecode)[(*bytecode_count)++] = increment_instr;
+
+    BytecodeInstruction store_loop_var_instr = {
+        .opcode = OP_STORE_VAR_,
+        .operand.string_operand = loop_var_name
+    };
+    (*bytecode)[(*bytecode_count)++] = store_loop_var_instr;
+
+    // 5. Jump back to condition check
+    BytecodeInstruction jump_to_condition_instr = {
+        .opcode = OP_JUMP_TO,
+        .operand.int_operand = condition_index
+    };
+    (*bytecode)[(*bytecode_count)++] = jump_to_condition_instr;
+
+    // Update the JUMP_TO_IF_FALSE placeholder
+    (*bytecode)[jump_if_false_index].operand.int_operand = *bytecode_count;
+}
+
+
+	
+
 
 /***********************************************************
  * Function: generate_bytecode
@@ -242,33 +343,42 @@ void generate_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size
         }
         break;
 
-    case AST_ASSIGNMENT:
-        generate_assignment_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
-        break;
-
-    case AST_BINARY_EXPR:
-        generate_binary_expr_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+    case AST_BLOCK:
+        for (size_t i = 0; i < node->child_count; i++) {
+            generate_bytecode(node->children[i], bytecode, bytecode_count, bytecode_capacity);
+        }
         break;
 
     case AST_LITERAL:
         generate_literal_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
         break;
 
+    case AST_ASSIGNMENT:
+        generate_assignment_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+        break;
+
     case AST_IDENTIFIER:
         generate_identifier_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+        break;
+
+    case AST_IF_STATEMENT:
+        generate_if_statement_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+        break;
+
+    case AST_WHILE_STATEMENT:
+        generate_while_loop_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+        break;
+
+    case AST_FOR_STATEMENT:
+        generate_for_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+        break;
+
+    case AST_BINARY_EXPR:
+        generate_binary_expr_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
         break;
     
 	case AST_UNARY_EXPR:
 		generate_unary_exp_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
-		break;
-
-	case AST_IF_STATEMENT:
-		generate_if_statement_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
-		break;
-	case AST_BLOCK:
-		for (size_t i = 0; i < node->child_count; i++) {
-			generate_bytecode(node->children[i], bytecode, bytecode_count, bytecode_capacity);
-		}
 		break;
 
     default:
@@ -357,6 +467,53 @@ void generate_if_statement_bytecode(const ASTNode* node, BytecodeInstruction** b
         (*bytecode)[jumpToEndIndex].operand.int_operand = *bytecode_count;
     }
 }
+
+
+
+
+
+/***********************************************************
+ * Function: generate_while_loop_bytecode
+ * Description: This function generates bytecode for a while loop.
+ * Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+ * Return: void
+ ***********************************************************/
+void generate_while_loop_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+    if (!node || node->child_count != 2) {
+        fprintf(stderr, "Invalid AST structure for 'while' loop.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Save the index of the condition check
+    size_t conditionIndex = *bytecode_count;
+
+    // Generate bytecode for the condition
+    generate_bytecode(node->children[0], bytecode, bytecode_count, bytecode_capacity);
+
+    // Generate a JUMP_TO_IF_FALSE instruction with a placeholder index
+    ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+    BytecodeInstruction jumpToFalseInstr = {
+        .opcode = OP_JUMP_TO_IF_FALSE,
+        .operand.int_operand = -1 // Placeholder
+    };
+    size_t jumpToFalseIndex = *bytecode_count; // Save the index for later update
+    (*bytecode)[(*bytecode_count)++] = jumpToFalseInstr;
+
+    // Generate bytecode for the body of the while loop
+    generate_bytecode(node->children[1], bytecode, bytecode_count, bytecode_capacity);
+
+    // Generate a JUMP_TO instruction to loop back to the condition
+    ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+    BytecodeInstruction jumpToConditionInstr = {
+        .opcode = OP_JUMP_TO,
+        .operand.int_operand = conditionIndex
+    };
+    (*bytecode)[(*bytecode_count)++] = jumpToConditionInstr;
+
+    // Update the JUMP_TO_IF_FALSE to point to the first instruction after the loop
+    (*bytecode)[jumpToFalseIndex].operand.int_operand = *bytecode_count;
+}
+
 
 
 
