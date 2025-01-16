@@ -1,4 +1,5 @@
 
+
 /**********************************************
 * File: runtimeEnv.h
 * This file have the runtime environment for the interpreter.
@@ -10,7 +11,6 @@
 
 
 
-#pragma once
 #pragma once
 #ifndef RUNTIME_ENV_H
 #define RUNTIME_ENV_H
@@ -31,46 +31,47 @@ typedef struct EnvEntry {
 /**
  * The environment (or context) with a hash table of EnvEntries.
  */
- typedef struct RuntimeEnvironment {
+typedef struct RuntimeEnvironment {
     size_t capacity; // The number of buckets in the hash table
-    EnvEntry** table; // An array of pointers to EnvEntry
+	EnvEntry* variables; // The hash table of variable bindings
+	EnvEntry* functions; // The hash table of function bindings
     struct RuntimeEnvironment* parent;
-	bool function_returned; // Flag to indicate if a function has returned
-	RuntimeValue return_value; // The value returned by a function
- } RuntimeEnvironment;
+    bool function_returned; // Flag to indicate if a function has returned
+    bool is_Function;
+    RuntimeValue return_value; // The value returned by a function
+} RuntimeEnvironment;
 
 /**
- * Initialize an environment with a given capacity (e.g., 128 for MVP and testing).
+ * Initialize an environment with a given capacity (e.g., 128).
  */
-RuntimeEnvironment* create_environment(size_t capacity);
+RuntimeEnvironment* create_environment(RuntimeEnvironment* parent);
 
 /**
  * Free the entire environment, including all linked EnvEntry nodes and any allocated keys/values.
  */
 void free_environment(RuntimeEnvironment* env);
 
-
-/**
- * Simple hashing function for strings.
- */
-unsigned long hash_string(const char* str);
-
 /**
  * Set or update a variable in the environment.
  * - If the key already exists, updates the value.
  * - If the key doesn't exist, creates a new entry.
  */
-void env_set(RuntimeEnvironment* env, const char* key, RuntimeValue value);
+void env_set_var(RuntimeEnvironment* env, const char* key, RuntimeValue value);
+void env_set_func(RuntimeEnvironment* env, const char* key, RuntimeValue value);
 
 /**
  * Retrieve a variable from the environment.
  * - If the key exists, returns the associated RuntimeValue.
  * - If the key doesn't exist, returns a null value.
  */
-RuntimeValue env_get(RuntimeEnvironment* env, const char* key);
+RuntimeValue env_get_var(RuntimeEnvironment* env, const char* key);
+
+RuntimeValue env_get_func(RuntimeEnvironment* env, const char* key);
+
+
 
 /**
- * Built-in function: some of the built in functions for our testing enviroment
+ * Built-in function: Registers a print function in the environment.
  */
 RuntimeEnvironment* built_in_functions(RuntimeEnvironment* env);
 

@@ -2,6 +2,7 @@
     "files.associations": {
         "*.embeddedhtml": "html",
         "ctype.h": "c",
-        "windows.h": "c"
+        "windows.h": "c",
+        "bytecode.h": "c"
     }
 }

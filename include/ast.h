@@ -1,3 +1,4 @@
+#pragma once
 /***********************************************************
 * File: ast.h
 * This file contains the Abstract Syntax Tree (AST) for the interpreter.
@@ -44,6 +45,10 @@ typedef enum {
     AST_DEFAULT,              // Default case for switch statement
 } ASTNodeType;
 
+
+
+
+
 /**
  * A tag for which type of data is stored in the ASTValue union
  * (used only if this node is AST_LITERAL or otherwise stores a value).
@@ -76,11 +81,11 @@ typedef struct ASTNode {
     ASTValue      value;      // The literal data (if any)
 
     char* operator_;  // Operator symbol (e.g. "+", "-", "==") for expression nodes
-
     // Children: We store all children in a dynamic array, which can include
     // the left and right sides of a binary expression or multiple statements in a block.
     struct ASTNode** children;
     size_t        child_count;
+	bool isFunction;
 
     // So we can easily find the parent node when needed.
     struct ASTNode* parent;
@@ -89,6 +94,15 @@ typedef struct ASTNode {
     size_t line;
     size_t column;
 } ASTNode;
+
+typedef struct {
+    const ASTNode* node;   // Original AST node
+    int parent_index;      // Index of the parent in the flat list (-1 for root)
+    int* children_indices; // Dynamic array of child indices
+    size_t child_count;    // Number of children
+} FlatNode;
+
+
 
 /**
  * Creates a new AST node with the given type, line, and column.
@@ -121,8 +135,8 @@ void free_ast_node(ASTNode* node);
 void print_ast(const ASTNode* node, int depth);
 
 char* str_duplicate(const char* src);
+void print_flattened_ast(FlatNode* flat_list, size_t flat_count);
+void flatten_ast(const ASTNode* root, FlatNode** flat_list, size_t* count, int parent_index);
 
-void flatten_ast(const ASTNode* root, ASTNode*** flat_list, size_t* count);
-void print_flattened_ast(ASTNode** flat_list, size_t flat_count);
 
 #endif // AST_H

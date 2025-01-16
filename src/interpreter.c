@@ -13,7 +13,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "interpreter.h"
+#include "Interpreter.h"  
+
+
 
 
 /***********************************************************
@@ -24,37 +26,89 @@
 * ***********************************************************/
 void print_return(RuntimeEnvironment* env) {
 
-	// change print color to vibrant yellow
-	printf("\033[0;93m\n");
-	if (env->function_returned) {
-		printf("Clock Returned: ");
-		if (env->return_value.type == RUNTIME_VALUE_INT) {
-			printf("%ld\n", env->return_value.int_val);
-		}
-		else if (env->return_value.type == RUNTIME_VALUE_FLOAT) {
-			printf("%f\n", env->return_value.float_val);
-		}
-		else if (env->return_value.type == RUNTIME_VALUE_BOOL) {
-			printf("%s\n", env->return_value.bool_val ? "true" : "false");
-		}
-		else if (env->return_value.type == RUNTIME_VALUE_STRING) {
-			printf("%s\n", env->return_value.string_val);
-		}
-		else if (env->return_value.type == RUNTIME_VALUE_NULL) {
-			printf("null\n");
-		}
-		else {
-			printf("Unknown return type\n");
-		}
-		printf("\n");
+    // change print color to vibrant yellow
+    printf("\033[0;93m\n");
+    if (env->function_returned) {
+        printf("Clock Returned: ");
+        if (env->return_value.type == RUNTIME_VALUE_INT) {
+            printf("%ld\n", env->return_value.int_val);
+        }
+        else if (env->return_value.type == RUNTIME_VALUE_FLOAT) {
+            printf("%f\n", env->return_value.float_val);
+        }
+        else if (env->return_value.type == RUNTIME_VALUE_BOOL) {
+            printf("%s\n", env->return_value.bool_val ? "true" : "false");
+        }
+        else if (env->return_value.type == RUNTIME_VALUE_STRING) {
+            printf("%s\n", env->return_value.string_val);
+        }
+        else if (env->return_value.type == RUNTIME_VALUE_NULL) {
+            printf("null\n");
+        }
+        else {
+            printf("Unknown return type\n");
+        }
+        printf("\n");
+    }
+    // back to default color
+    printf("\033[0m\n");
+}
+
+
+
+/***********************************************************
+* Function: eval_identifier_variable
+* Description: This function evaluates the identifier as a variable.
+* Parameters: ASTNode* node, RuntimeEnvironment* env
+* Return: RuntimeValue
+***********************************************************/
+RuntimeValue eval_identifier_variable(ASTNode* node, RuntimeEnvironment* env) {
+    if (!node || !env) {
+        fprintf(stderr, "Invalid arguments provided to eval_identifier_variable.\n");
+        return make_null_value();
+    }
+
+    const char* varName = node->operator_;  // The identifier name
+
+    // Search for the variable in the environment
+    RuntimeValue value = env_get_var(env, varName);
+	if (value.type != RUNTIME_VALUE_NULL) {
+		return value;
 	}
-	// back to default color
-	printf("\033[0m\n");
+
+    // Variable not found
+    fprintf(stderr, "Variable '%s' not found in the current environment.\n", varName);
+    return make_null_value();
 }
 
 
 
 
+
+/***********************************************************
+* Function: eval_function_identifier
+* Description: This function evaluates the identifier as a function.
+* Parameters: ASTNode* node, RuntimeEnvironment* env
+* Return: RuntimeValue
+***********************************************************/
+RuntimeValue eval_function_identifier(ASTNode* node, RuntimeEnvironment* env) {
+    if (!node || !env) {
+        fprintf(stderr, "Invalid arguments provided to eval_function_identifier.\n");
+        return make_null_value();
+    }
+
+    const char* funcName = node->operator_;  // The identifier name
+
+    // Search for the function in the environment
+    RuntimeValue value = env_get_func(env, funcName);
+	if (value.type != RUNTIME_VALUE_NULL) {
+		return value;
+	}
+
+    // Function not found
+    fprintf(stderr, "Function '%s' not found in the current environment.\n", funcName);
+    return make_null_value();
+}
 
 
 /***********************************************************
@@ -65,14 +119,14 @@ void print_return(RuntimeEnvironment* env) {
 * ***********************************************************/
 void interpret(ASTNode* root) {
     // Create a global environment (hash table or similar)
-    RuntimeEnvironment* globalEnv = create_environment(128);
+    RuntimeEnvironment* globalEnv = create_environment(NULL);
     built_in_functions(globalEnv);
 
     // Evaluate the top-level AST (AST_PROGRAM).
     eval_ast_node(root, globalEnv);
 
-	// environment return value
-	print_return(globalEnv);
+    // environment return value
+    print_return(globalEnv);
 
     free(globalEnv);
 }
@@ -89,7 +143,7 @@ void interpret(ASTNode* root) {
 RuntimeValue make_special_value(const char* special) {
     RuntimeValue value = make_null_value();
     value.type = RUNTIME_VALUE_SPECIAL;
-	value.special_val = special;
+    value.special_val = special;
     return value;
 }
 
@@ -107,39 +161,45 @@ RuntimeValue eval_ast_node(ASTNode* node, RuntimeEnvironment* env) {
         return make_null_value();
     }
 
-	if (env->function_returned) {
-		return env->return_value;
-	}
+    if (env->function_returned) {
+        return env->return_value;
+    }
     switch (node->type) {
     case AST_PROGRAM:
-		return eval_program(node, env); // Evaluate the program
+        return eval_program(node, env); // Evaluate the program
 
     case AST_BLOCK:
-		return eval_block(node, env); // Evaluate blocks
+        return eval_block(node, env); // Evaluate blocks
 
     case AST_LITERAL:
-		return eval_literal(node); // Evaluate literals
+        return eval_literal(node); // Evaluate literals
 
     case AST_IDENTIFIER:
-		return eval_identifier(node, env); // Evaluate identifiers
+		if (env->is_Function) {
+			return eval_function_identifier(node, env); // Evaluate function identifiers
+		}
+		else {
+			return eval_identifier_variable(node, env); // Evaluate variable identifiers
+		}
 
     case AST_ASSIGNMENT:
-		return eval_assignment(node, env); // Evaluate assignments
+		env->is_Function = false;
+        return eval_assignment(node, env); // Evaluate assignments
 
     case AST_IF_STATEMENT:
-		return eval_if_statement(node, env); // Evaluate if statements
+        return eval_if_statement(node, env); // Evaluate if statements
 
     case AST_WHILE_STATEMENT:
-		return eval_while_statement(node, env); // Evaluate while statements
+        return eval_while_statement(node, env); // Evaluate while statements
 
-    case AST_FOR_STATEMENT: 
-		return eval_for_statement(node, env); // Evaluate for statements
+    case AST_FOR_STATEMENT:
+        return eval_for_statement(node, env); // Evaluate for statements
 
     case AST_BINARY_EXPR:
-		return eval_binary_expr(node, env); // Evaluate binary expressions
+        return eval_binary_expr(node, env); // Evaluate binary expressions
 
     case AST_UNARY_EXPR:
-		return eval_unary_expr(node, env);  // Evaluate unary expressions
+        return eval_unary_expr(node, env);  // Evaluate unary expressions
 
     case AST_ARRAY_LITERAL:
         return eval_array_literal(node, env); // Evaluate array literals
@@ -148,26 +208,28 @@ RuntimeValue eval_ast_node(ASTNode* node, RuntimeEnvironment* env) {
         return eval_array_access(node, env); // Evaluate array access
 
     case AST_BREAK:
-		return make_special_value("stop"); // Stop the current loop
+        return make_special_value("stop"); // Stop the current loop
 
     case AST_FUNCTION_CALL:
-		return eval_function_call(node, env); // Evaluate function calls
+		env->is_Function = true;
+        return eval_function_call(node, env); // Evaluate function calls
 
     case AST_FUNCTION_DECLARATION:
-		return eval_function_declaration(node, env); // Evaluate function declarations
+		env->is_Function = true;
+        return eval_function_declaration(node, env); // Evaluate function declarations
 
     case AST_RETURN_STATEMENT:
-		if (env->parent == NULL) {
-			ASTNode* returnExpressionNode = find_next_node_after_return(node);
-			RuntimeValue resultValue = eval_ast_node(returnExpressionNode, env);
-			env->return_value = resultValue;
-            env->function_returned = true; 
-			return resultValue;           // Return the result of the expression
-		}
-		return make_special_value("return"); // Return from the current function
+        if (env->parent == NULL) {
+            ASTNode* returnExpressionNode = find_next_node_after_return(node);
+            RuntimeValue resultValue = eval_ast_node(returnExpressionNode, env);
+            env->return_value = resultValue;
+            env->function_returned = true;
+            return resultValue;           // Return the result of the expression
+        }
+        return make_special_value("return"); // Return from the current function
 
-	case AST_SWITCH:
-		return eval_switch_statement(node, env); // Evaluate switch statements
+    case AST_SWITCH:
+        return eval_switch_statement(node, env); // Evaluate switch statements
 
     default:
         fprintf(stderr, "Error: Unsupported AST node type: %d\n", node->type);
@@ -201,7 +263,7 @@ RuntimeValue eval_when_case(ASTNode* caseNode, RuntimeValue switchValue, Runtime
             }
 
             // Return the result of the case
-			result = make_special_value("when");
+            result = make_special_value("when");
             return result;
         }
     }
@@ -251,22 +313,22 @@ RuntimeValue eval_switch_statement(ASTNode* node, RuntimeEnvironment* env) {
 
     // Evaluate the switch expression
     RuntimeValue switchValue = eval_ast_node(node->children[0], env);
-	bool hasDefault = true;
+    bool hasDefault = true;
     // Traverse the "when" cases
     for (size_t i = 1; i < node->child_count; i++) {
         ASTNode* caseNode = node->children[i];
 
         if (caseNode->type == AST_WHEN) {
             // Evaluate the "when" case
-			RuntimeValue result = eval_when_case(caseNode, switchValue, env);
+            RuntimeValue result = eval_when_case(caseNode, switchValue, env);
             if (result.type != RUNTIME_VALUE_NULL) {
-				hasDefault = false;
+                hasDefault = false;
                 return result; // Return the result if a value is produced
             }
         }
         else if (caseNode->type == AST_DEFAULT && hasDefault) {
             // Evaluate the default case
-			return eval_default_case(caseNode, env);
+            return eval_default_case(caseNode, env);
         }
     }
 
@@ -413,7 +475,7 @@ RuntimeValue eval_function_declaration(ASTNode* node, RuntimeEnvironment* env) {
     functionValue.function_val.parameters = paramsNode ? paramsNode : NULL;
 
     // Insert into the environment
-    env_set(env, functionName, functionValue);
+	env_set_func(env, functionName, functionValue);
 
     return make_null_value();
 }
@@ -450,7 +512,7 @@ RuntimeValue eval_user_function_call(RuntimeValue functionVal, RuntimeValue* arg
             free(functionEnv);
             return make_null_value();
         }
-        env_set(functionEnv, paramName, args[i]);
+		env_set_func(functionEnv, paramName, args[i]);
     }
 
     // 3) Evaluate the body in the new environment
@@ -656,7 +718,7 @@ RuntimeValue eval_assignment(ASTNode* node, RuntimeEnvironment* env) {
     if (rightVal.type == RUNTIME_VALUE_SPECIAL &&
         strcmp(rightVal.special_val, "return") == 0) {
         if (rightVal.return_val) {
-			rightVal = env->return_value;
+            rightVal = env->return_value;
         }
         else {
             fprintf(stderr, "Error: Invalid return value in assignment.\n");
@@ -704,14 +766,15 @@ RuntimeValue eval_assignment(ASTNode* node, RuntimeEnvironment* env) {
     else if (leftNode->type == AST_IDENTIFIER) {
         // Handle normal variable assignment
         const char* varName = leftNode->operator_;
-        RuntimeValue currentVal = env_get(env, varName);
+
 
         if (strcmp(op, "=") == 0) {
-            env_set(env, varName, rightVal); // Simple assignment
+			env_set_var(env, varName, rightVal); // Simple assignment
         }
         else {
+            RuntimeValue currentVal = env_get_var(env, varName);
             RuntimeValue newVal = apply_compound_operator(op, currentVal, rightVal);
-            env_set(env, varName, newVal); // Compound assignment
+			env_set_var(env, varName, newVal);
         }
         return rightVal;
     }
@@ -831,6 +894,7 @@ RuntimeValue* collect_arguments(ASTNode* argsNode, RuntimeEnvironment* env, size
 
     // Traverse again to evaluate arguments
     current = argsNode;
+    env->is_Function = false;
     for (size_t i = arg_count; i > 0; i--) {
         if (current->type == AST_BINARY_EXPR && strcmp(current->operator_, ",") == 0) {
             args[i - 1] = eval_ast_node(current->children[1], env); // Right child
@@ -857,9 +921,9 @@ RuntimeValue* collect_arguments(ASTNode* argsNode, RuntimeEnvironment* env, size
 ASTNode* find_next_node_after_return(ASTNode* returnNode) {
     if (!returnNode) return NULL;
 
-	if (returnNode->type == AST_RETURN_STATEMENT) {
-		return returnNode->children[0];
-	}
+    if (returnNode->type == AST_RETURN_STATEMENT) {
+        return returnNode->children[0];
+    }
 
     // Traverse all children of the `return` node
     for (size_t i = 0; i < returnNode->child_count; i++) {
@@ -911,8 +975,8 @@ RuntimeValue eval_block(ASTNode* node, RuntimeEnvironment* env) {
 
                     // Evaluate the entire expression inside the return node
                     RuntimeValue resultValue = eval_ast_node(returnExpressionNode, env);
-					env->function_returned = true;
-					env->return_value = resultValue;
+                    env->function_returned = true;
+                    env->return_value = resultValue;
                     return resultValue;
                 }
 
@@ -957,18 +1021,6 @@ RuntimeValue eval_literal(ASTNode* node) {
 }
 
 
-
-
-/***********************************************************
-* Function: eval_identifier
-* Description: this function evaluates the identifier.
-* Parameters: ASTNode* node, RuntimeEnvironment* env
-* Return: RuntimeValue
-* ***********************************************************/
-RuntimeValue eval_identifier(ASTNode* node, RuntimeEnvironment* env) {
-    const char* varName = node->operator_;  // operator_ holds the identifier name
-    return env_get(env, varName);
-}
 
 
 
@@ -1072,7 +1124,7 @@ RuntimeValue eval_while_statement(ASTNode* node, RuntimeEnvironment* env) {
     ASTNode* conditionNode = node->children[0];
     ASTNode* bodyNode = node->children[1];
 
-    while (1 && !env->function_returned)  {
+    while (1 && !env->function_returned) {
         // Evaluate condition
         RuntimeValue condVal = eval_ast_node(conditionNode, env);
 
@@ -1206,21 +1258,21 @@ RuntimeValue eval_binary_expr(ASTNode* node, RuntimeEnvironment* env) {
         return make_null_value();
     }
 
-	else if (strcmp(op, "%") == 0) {
-		// ...
-		if (leftVal.type == RUNTIME_VALUE_INT && rightVal.type == RUNTIME_VALUE_INT) {
-			if (rightVal.int_val == 0) {
-				fprintf(stderr, "Runtime Error: modulo by zero.\n");
-				return make_null_value();
-			}
-			return make_int_value(leftVal.int_val % rightVal.int_val);
-		}
-		return make_null_value();
-	}
+    else if (strcmp(op, "%") == 0) {
+        // ...
+        if (leftVal.type == RUNTIME_VALUE_INT && rightVal.type == RUNTIME_VALUE_INT) {
+            if (rightVal.int_val == 0) {
+                fprintf(stderr, "Runtime Error: modulo by zero.\n");
+                return make_null_value();
+            }
+            return make_int_value(leftVal.int_val % rightVal.int_val);
+        }
+        return make_null_value();
+    }
 
     else if (strcmp(op, "==") == 0 || strcmp(op, "!=") == 0 ||
         strcmp(op, "<") == 0 || strcmp(op, ">") == 0 ||
-		strcmp(op, "<=") == 0 || strcmp(op, ">=") == 0 || strcmp(op, "&&") == 0 || strcmp(op, "||") == 0) {
+        strcmp(op, "<=") == 0 || strcmp(op, ">=") == 0 || strcmp(op, "&&") == 0 || strcmp(op, "||") == 0) {
         return evaluate_comparison(op, leftVal, rightVal);
     }
 
@@ -1244,17 +1296,17 @@ RuntimeValue evaluate_comparison(const char* op, RuntimeValue leftVal, RuntimeVa
         return make_bool_value(false);
     }
 
-	if (strcmp(op, "&&") == 0) {
-		bool left = (leftVal.type == RUNTIME_VALUE_BOOL && leftVal.bool_val);
-		bool right = (rightVal.type == RUNTIME_VALUE_BOOL && rightVal.bool_val);
-		return make_bool_value(left && right);
-	}
-	else if (strcmp(op, "||") == 0) {
-		bool left = (leftVal.type == RUNTIME_VALUE_BOOL && leftVal.bool_val);
-		bool right = (rightVal.type == RUNTIME_VALUE_BOOL && rightVal.bool_val);
-		return make_bool_value(left || right);
-	}
-   
+    if (strcmp(op, "&&") == 0) {
+        bool left = (leftVal.type == RUNTIME_VALUE_BOOL && leftVal.bool_val);
+        bool right = (rightVal.type == RUNTIME_VALUE_BOOL && rightVal.bool_val);
+        return make_bool_value(left && right);
+    }
+    else if (strcmp(op, "||") == 0) {
+        bool left = (leftVal.type == RUNTIME_VALUE_BOOL && leftVal.bool_val);
+        bool right = (rightVal.type == RUNTIME_VALUE_BOOL && rightVal.bool_val);
+        return make_bool_value(left || right);
+    }
+
     switch (leftVal.type) {
     case RUNTIME_VALUE_INT: {
         long left = leftVal.int_val;

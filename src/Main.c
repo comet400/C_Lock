@@ -10,6 +10,8 @@
 
 #define INITIAL_BUFFER_SIZE 1024
 
+
+
 // A small helper to print the tokens for debugging
 void print_tokens(const TokenArray* tokens) {
     printf("=== TOKENS ===\n");
@@ -25,23 +27,12 @@ void print_tokens(const TokenArray* tokens) {
 
 void init_interpreter()
 {
-	bool debug = false;
+    bool debug = false;
     char* fullCode = (char*)"";
-
-    #ifdef _WIN32
     system("cls");
-    #else
-    system("clear");
-    #endif
     // 1) Prompt user for input
     //change print color to green
-    #ifdef _WIN32
     system("color 0A");
-#else
-    printf("\033[0;32m");  // Set text color to green
-    fflush(stdout);        // Flush the output buffer
-#endif
-
 
     size_t bufferSize = INITIAL_BUFFER_SIZE;
     size_t currentLength = 0;
@@ -86,21 +77,10 @@ void init_interpreter()
         }
 
         // Append line to sourceCode
-        #if defined(_WIN32) || defined(__STDC_LIB_EXT1__)
         strcpy_s(sourceCode + currentLength, bufferSize - currentLength, line);
-        #else
-        strncpy(sourceCode + currentLength, line, bufferSize - currentLength);
-        sourceCode[bufferSize - 1] = '\0';
-        #endif
-
         currentLength += lineLen;
         fullCode = sourceCode;
-        
-        #ifdef _WIN32
         system("cls");
-        #else
-        system("clear");
-        #endif
     }
 
     // Null-terminate the string
@@ -112,7 +92,7 @@ void init_interpreter()
 
     if (currentLength == 0) {
         fprintf(stderr, "No input provided.\n");
-		printf("\033[0;37m");
+        printf("\033[0;37m");
         free(sourceCode);
         return;
     }
@@ -121,37 +101,34 @@ void init_interpreter()
     printf("Program Output: \n\n");
     TokenArray tokens = tokenize(sourceCode);
 
-	if (debug) print_tokens(&tokens);
-    
+    if (debug) print_tokens(&tokens);
 
     // 3) Create a parser and parse into an AST
     Parser parser = create_parser(&tokens);
     ASTNode* root = parse_program(&parser);
 
-	if (debug) print_ast(root, 0);
+    if (debug) print_ast(root, 0);
 
-    ASTNode** flat_list = NULL;
-    size_t flat_count = 0;
-    flatten_ast(root, &flat_list, &flat_count);
-
-    if (debug) print_flattened_ast(flat_list, flat_count);
-    
     // 4) Interpret (execute) the AST
     interpret(root);
 
 
     // 5) Clean up: free AST, tokens, etc.
-    BytecodeInstruction* bytecode = malloc(sizeof(BytecodeInstruction) * 1024);
-    size_t bytecode_count = 0;
-    size_t bytecode_capacity = 1024;
-    generate_bytecode(root, &bytecode, &bytecode_count, &bytecode_capacity);
-    if (debug) print_byteCode(bytecode, bytecode_count);
-    free(bytecode);
-    
+    if (debug) {
+        BytecodeInstruction* bytecode = malloc(sizeof(BytecodeInstruction) * 1024);
+        size_t bytecode_count = 0;
+        size_t bytecode_capacity = 1024;
+        generate_bytecode(root, &bytecode, &bytecode_count, &bytecode_capacity);
+        print_byteCode(bytecode, bytecode_count);
+
+        free(bytecode);
+    }
+
+
     free_ast_node(root);
     free_token_array(&tokens);
     free(sourceCode);
-    free(flat_list);
+
 
     //go back to white
     printf("\033[0;37m");
@@ -182,7 +159,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Read file content
-        size_t bytesRead = fread(sourceCode, 1, length+1, file);
+        size_t bytesRead = fread(sourceCode, 1, length, file);
         fclose(file);
 
         if (bytesRead != length) {
@@ -217,6 +194,7 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
 
 
 

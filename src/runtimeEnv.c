@@ -1,25 +1,9 @@
-/**********************************************
-* File: runtimeEnv.c
-* This file have the runtime environment for the interpreter.
-* the environment is responsible for storing variables and functions.
-* This Code was written by Lukas Fukuoka Vieira.
-* Contact : lukas.fvieira@hotmail.com
-* GitHub:https://github.com/comet400
-************************************************************/
-
-
-
-
 #include "runtimeEnv.h"
 #include <string.h>
 #include <stdio.h>
 #include "lexer.h"
 #include <sys/stat.h>
-
-#ifdef _WIN32
 #include <windows.h>
-#endif
-
 #include <wchar.h>
 #include <time.h>
 
@@ -46,36 +30,36 @@ unsigned long hash_string(const char* str) {
 /***********************************************************
 * Function: create_environment
 * Description: this function creates a new runtime environment
-* Parameters: size_t capacity
+* Parameters: RuntimeEnvironment* parent
 * Return: RuntimeEnvironment*
-* ***********************************************************/
-RuntimeEnvironment* create_environment(size_t capacity) {
+***********************************************************/
+RuntimeEnvironment* create_environment(RuntimeEnvironment* parent) {
+    // Allocate memory for the runtime environment
     RuntimeEnvironment* env = (RuntimeEnvironment*)malloc(sizeof(RuntimeEnvironment));
-	env->function_returned = false;
-	env->return_value = make_null_value();
-    env->parent = NULL;
     if (!env) {
         fprintf(stderr, "Memory allocation failed for RuntimeEnvironment\n");
         return NULL;
     }
-    env->capacity = capacity;
-    env->table = (EnvEntry**)calloc(capacity, sizeof(EnvEntry*));
-    if (!env->table) {
-        fprintf(stderr, "Memory allocation failed for RuntimeEnvironment table\n");
-        free(env);
-        return NULL;
-    }
+
+    // Initialize fields
+    env->function_returned = false;             // No function has returned yet
+    env->return_value = make_null_value();      // Initialize return value as null
+    env->parent = parent;                       // Link to the parent environment
+    env->variables = NULL;                      // Initialize variable list to empty
+    env->functions = NULL;                      // Initialize function list to empty
+
     return env;
 }
 
 
 
 
+
 /***********************************************************
-* Function: builtin_timestamp
-* Description: this function allows the user to use current timestamp
-* Parameters: RuntimeValue* args, size_t argc
-* Return: RuntimeValue
+* Function: strndump
+* Description: this function duplicates a string
+* Parameters: const char* src, size_t len
+* Return: char*
 * ***********************************************************/
 RuntimeValue builtin_timestamp(RuntimeValue* args, size_t argc) {
     if (argc != 0) {
@@ -373,7 +357,7 @@ RuntimeValue builtin_file_size(RuntimeValue* args, size_t argc) {
 
 
 
-#ifdef _WIN32
+
 /***********************************************************
 * Function: builtin_list_files
 * Description: this function lists files in a directory windows only
@@ -419,7 +403,7 @@ RuntimeValue builtin_list_files(RuntimeValue* args, size_t argc) {
     FindClose(hFind);
     return make_null_value();
 }
-#endif
+
 
 
 
@@ -462,10 +446,10 @@ RuntimeEnvironment* built_in_functions(RuntimeEnvironment* env) {
     }
 
     RuntimeValue printFunction = make_builtin_function(print_builtin);
-    env_set(env, "write", printFunction);
+	env_set_func(env, "write", printFunction);
 
     RuntimeValue inputFunction = make_builtin_function(builtin_input);
-    env_set(env, "input", inputFunction);
+	env_set_func(env, "input", inputFunction);
 
     add_time_built_ins(env);
 
@@ -486,13 +470,13 @@ RuntimeEnvironment* built_in_functions(RuntimeEnvironment* env) {
 void add_time_built_ins(RuntimeEnvironment* env)
 {
     RuntimeValue timeFunction = make_builtin_function(builtin_current_time);
-    env_set(env, "current_time", timeFunction);
+    env_set_func(env, "current_time", timeFunction);
 
     RuntimeValue dateFunction = make_builtin_function(builtin_current_date);
-    env_set(env, "date_time", dateFunction);
+    env_set_func(env, "date_time", dateFunction);
 
     RuntimeValue timestampFunction = make_builtin_function(builtin_timestamp);
-    env_set(env, "timestamp", timestampFunction);
+    env_set_func(env, "timestamp", timestampFunction);
 }
 
 
@@ -508,27 +492,25 @@ void add_file_built_ins(RuntimeEnvironment* env)
 {
 
     RuntimeValue readFunction = make_builtin_function(builtin_read_file);
-    env_set(env, "read_file", readFunction);
+	env_set_func(env, "read_file", readFunction);
 
     RuntimeValue writeFunction = make_builtin_function(builtin_write_file);
-    env_set(env, "write_file", writeFunction);
+    env_set_func(env, "write_file", writeFunction);
 
     RuntimeValue appendFunction = make_builtin_function(builtin_append_file);
-    env_set(env, "append_file", appendFunction);
+    env_set_func(env, "append_file", appendFunction);
 
     RuntimeValue existsFunction = make_builtin_function(builtin_file_exists);
-    env_set(env, "file_exists", existsFunction);
+    env_set_func(env, "file_exists", existsFunction);
 
     RuntimeValue sizeFunction = make_builtin_function(builtin_file_size);
-    env_set(env, "file_size", sizeFunction);
+    env_set_func(env, "file_size", sizeFunction);
 
-    #ifdef _WIN32
     RuntimeValue listFunction = make_builtin_function(builtin_list_files);
-    env_set(env, "list_files", listFunction);
-    #endif
+    env_set_func(env, "list_files", listFunction);
 
     RuntimeValue deleteFunction = make_builtin_function(builtin_delete_file);
-    env_set(env, "delete_file", deleteFunction);
+    env_set_func(env, "delete_file", deleteFunction);
 }
 
 
@@ -602,31 +584,27 @@ void free_runtime_value(RuntimeValue* val)
 void free_environment(RuntimeEnvironment* env) {
     if (!env) return;
 
-    if (env->table) {
-        for (size_t i = 0; i < env->capacity; i++) {
-            EnvEntry* entry = env->table[i];
-            while (entry) {
-                EnvEntry* next = entry->next;
-
-                // 1) free the key
-                if (entry->key) {
-                    free(entry->key);
-                    entry->key = NULL;
-                }
-
-                // 2) free the runtime value's internal data
-                free_runtime_value(&entry->value);
-
-                // 3) free the EnvEntry struct
-                free(entry);
-                entry = next;
-            }
+    if (env->variables) {
+        EnvEntry* entry = env->variables;
+        while (entry) {
+            EnvEntry* next = entry->next;
+            free(entry->key);
+            free_runtime_value(&entry->value);
+            free(entry);
+            entry = next;
         }
-        free(env->table);
-        env->table = NULL;
     }
 
-    free(env);
+    if (env->functions) {
+        EnvEntry* entry = env->functions;
+        while (entry) {
+            EnvEntry* next = entry->next;
+            free(entry->key);
+            free_runtime_value(&entry->value);
+            free(entry);
+            entry = next;
+        }
+    }
 }
 //manipulate the free functions very carefully
 
@@ -634,82 +612,120 @@ void free_environment(RuntimeEnvironment* env) {
 
 
 
-/***********************************************************
-* Function: env_set
-* Description: this function sets a variable in the environment
-* Parameters: RuntimeEnvironment* env, const char* key, RuntimeValue value
-* Return: void
-* ***********************************************************/
-void env_set(RuntimeEnvironment* env, const char* key, RuntimeValue value) {
+void env_set_var(RuntimeEnvironment* env, const char* key, RuntimeValue value) {
     if (!env || !key) {
-        fprintf(stderr, "Invalid arguments provided to env_set.\n");
+        fprintf(stderr, "Invalid arguments provided to env_set_var.\n");
         return;
     }
 
-    unsigned long h = hash_string(key) % env->capacity;
-    EnvEntry* head = env->table[h];
-    EnvEntry* prev = NULL;
-
-    // Check if the key already exists
-    while (head) {
-        if (strcmp(head->key, key) == 0) {
-            head->value = value; // Update value
+    // Search for an existing variable in the current environment
+    EnvEntry* entry = env->variables;
+    while (entry) {
+        if (strcmp(entry->key, key) == 0) {
+            entry->value = value; // Update value
             return;
         }
-        prev = head;
-        head = head->next;
+        entry = entry->next;
     }
 
-    // Key not found: Create a new entry
-    EnvEntry* newEntry = (EnvEntry*)malloc(sizeof(EnvEntry));
-    if (!newEntry) {
+    // Variable not found: Create a new entry
+    EnvEntry* new_entry = (EnvEntry*)malloc(sizeof(EnvEntry));
+    if (!new_entry) {
         fprintf(stderr, "Memory allocation failed for EnvEntry.\n");
         exit(EXIT_FAILURE);
     }
 
-    newEntry->key = strndump(key, strlen(key));
-    newEntry->value = value;
-    newEntry->next = env->table[h]; // Insert at head
-    env->table[h] = newEntry;
+    new_entry->key = strdup(key); // Copy the key
+    new_entry->value = value;
+    new_entry->next = env->variables; // Insert at the head of the list
+    env->variables = new_entry;
+}
+
+
+
+
+void env_set_func(RuntimeEnvironment* env, const char* key, RuntimeValue value) {
+    if (!env || !key) {
+        fprintf(stderr, "Invalid arguments provided to env_set_func.\n");
+        return;
+    }
+
+    // Search for an existing function in the current environment
+    EnvEntry* entry = env->functions;
+    while (entry) {
+        if (strcmp(entry->key, key) == 0) {
+            entry->value = value; // Update value
+            return;
+        }
+        entry = entry->next;
+    }
+
+    // Function not found: Create a new entry
+    EnvEntry* new_entry = (EnvEntry*)malloc(sizeof(EnvEntry));
+    if (!new_entry) {
+        fprintf(stderr, "Memory allocation failed for EnvEntry.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    new_entry->key = strdup(key); // Copy the key
+    new_entry->value = value;
+    new_entry->next = env->functions; // Insert at the head of the list
+    env->functions = new_entry;
 }
 
 
 
 
 
-/***********************************************************
-* Function: env_get
-* Description: this function gets a variable from the environment if it exists else returns null
-* Parameters: RuntimeEnvironment* env, const char* key
-* Return: RuntimeValue
-* ***********************************************************/
-RuntimeValue env_get(RuntimeEnvironment* env, const char* key) {
+
+
+RuntimeValue env_get_var(RuntimeEnvironment* env, const char* key) {
     if (!env || !key) {
-        // Return a null value if environment or key is invalid
         return make_null_value();
     }
 
+    RuntimeEnvironment* current = env;
 
-    if (!env->capacity || !env->table) {
-        return make_null_value();
-    }
-
-    // Try to find 'key' in the current environment
-    unsigned long h = hash_string(key) % env->capacity;
-    EnvEntry* head = env->table[h];
-    while (head) {
-        if (strcmp(head->key, key) == 0) {
-            return head->value; // Found locally
+    // Traverse the stack of environments
+    while (current) {
+        EnvEntry* entry = current->variables;
+        while (entry) {
+            if (strcmp(entry->key, key) == 0) {
+                return entry->value; // Found variable
+            }
+            entry = entry->next;
         }
-        head = head->next;
+        current = current->parent; // Move to parent environment
     }
 
-    // Not found in this environment. If there's a parent, search it.
-    if (env->parent != NULL) {
-        return env_get(env->parent, key);
+    // Variable not found
+    return make_null_value();
+}
+
+
+
+
+
+RuntimeValue env_get_func(RuntimeEnvironment* env, const char* key) {
+    if (!env || !key) {
+        return make_null_value();
     }
 
-    // No parent => truly not found, return null
+    RuntimeEnvironment* current = env;
+
+    // Traverse the stack of environments
+    while (current) {
+        EnvEntry* entry = current->functions;
+        while (entry) {
+            if (strcmp(entry->key, key) == 0) {
+                return entry->value; // Found function
+            }
+            entry = entry->next;
+        }
+        current = current->parent; // Move to parent environment
+    }
+
+    // Function not found
     return make_null_value();
 }
 

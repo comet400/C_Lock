@@ -1,3 +1,4 @@
+#pragma once
 /***********************************************************
 * File: interpreter.h
 * This file contains the interpreter for the Clock coding language.
@@ -14,8 +15,7 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
-#include "ast.h"
-#include "runtimeEnv.h"
+#include "RuntimeEnv.h"
 
 
 /**
@@ -31,7 +31,10 @@ RuntimeValue eval_ast_node(ASTNode* node, RuntimeEnvironment* env);
 RuntimeValue eval_program(ASTNode* node, RuntimeEnvironment* env);
 RuntimeValue eval_block(ASTNode* node, RuntimeEnvironment* env);
 RuntimeValue eval_literal(ASTNode* node);
-RuntimeValue eval_identifier(ASTNode* node, RuntimeEnvironment* env);
+
+RuntimeValue eval_identifier_variable(ASTNode* node, RuntimeEnvironment* env);
+RuntimeValue eval_function_identifier(ASTNode* node, RuntimeEnvironment* env);
+
 RuntimeValue eval_assignment(ASTNode* node, RuntimeEnvironment* env);
 RuntimeValue eval_if_statement(ASTNode* node, RuntimeEnvironment* env);
 RuntimeValue eval_while_statement(ASTNode* node, RuntimeEnvironment* env);
