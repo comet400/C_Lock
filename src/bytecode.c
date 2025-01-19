@@ -1,3 +1,15 @@
+/***********************************************************
+* File: bytecode.C
+* This file have the bytecode for the interpreter.
+* The bytecode is used to store the instructions for the machine compiler (machine type: 86x64).
+* This Code was written by Lukas Fukuoka Vieira.
+* Contact: lukas.fvieira@hotmail.com
+* GitHub:https://github.com/comet400
+************************************************************/
+
+
+
+
 #include "bytecode.h"
 
 const char* ByteCodeNames[] = {
@@ -380,6 +392,16 @@ void generate_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size
 	case AST_UNARY_EXPR:
 		generate_unary_exp_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
 		break;
+	case AST_FUNCTION_DECLARATION:
+		generate_function_declaration_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+		break;
+	case AST_FUNCTION_CALL:
+		generate_function_call_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+		break;
+
+    case AST_RETURN_STATEMENT:
+		generate_return_statement_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+		break;
 
     default:
         fprintf(stderr, "Unhandled ASTNode type: %d\n", node->type);
@@ -627,3 +649,140 @@ void print_byteCode(const BytecodeInstruction* bytecode, size_t count) {
     }
     printf("=== END BYTECODE ===\n");
 }
+
+
+
+
+
+
+/***********************************************************
+* Function: generate_function_declaration_bytecode
+* Description: Generates bytecode for function declarations.
+* Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+* Return: void
+***********************************************************/
+void generate_function_declaration_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+    if (!node || node->type != AST_FUNCTION_DECLARATION) {
+        fprintf(stderr, "Invalid node type for function declaration.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Ensure bytecode capacity
+    ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+
+    // The first child is the function name (identifier node)
+    const ASTNode* identifierNode = node->children[0];
+    if (!identifierNode || identifierNode->type != AST_IDENTIFIER || !identifierNode->isFunction) {
+        fprintf(stderr, "Invalid function identifier.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Add function declaration instruction
+    BytecodeInstruction instr = {
+        .opcode = OP_DECL_FUNCTION,
+        .operand.function_decl.param_count = node->child_count - 2, // Remaining children after identifier and body
+        .operand.function_decl.body_index = *bytecode_count + 1    // Body starts next
+    };
+    (*bytecode)[(*bytecode_count)++] = instr;
+
+    // Track whether a return statement has been encountered
+    bool has_returned = false;
+
+    // Generate bytecode for the function body (last child is the body block)
+    const ASTNode* body = node->children[node->child_count - 1];
+    for (size_t i = 0; i < body->child_count; i++) {
+        if (has_returned) {
+            // Skip generating bytecode for statements after a return
+            break;
+        }
+
+        const ASTNode* statement = body->children[i];
+
+        // Check if the statement is a return
+        if (statement->type == AST_RETURN_STATEMENT) {
+            has_returned = true;
+        }
+
+        // Generate bytecode for the statement
+        generate_bytecode(statement, bytecode, bytecode_count, bytecode_capacity);
+    }
+
+    // Add return instruction if there wasn't an explicit return in the function
+    if (!has_returned) {
+        ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+        instr.opcode = OP_RETURN_;
+        (*bytecode)[(*bytecode_count)++] = instr;
+    }
+}
+
+
+
+
+
+/***********************************************************
+* Function: generate_function_call_bytecode
+* Description: Generates bytecode for function calls.
+* Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+* Return: void
+***********************************************************/
+void generate_function_call_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+    if (!node || node->type != AST_FUNCTION_CALL) {
+        fprintf(stderr, "Invalid node type for function call.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // The first child is the function name (identifier node)
+    const ASTNode* identifierNode = node->children[0];
+    if (!identifierNode || identifierNode->type != AST_IDENTIFIER || !identifierNode->isFunction) {
+        fprintf(stderr, "Invalid function identifier in call.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Generate bytecode for each argument (remaining children)
+    for (size_t i = 1; i < node->child_count; i++) {
+        generate_bytecode(node->children[i], bytecode, bytecode_count, bytecode_capacity);
+    }
+
+    // Ensure bytecode capacity
+    ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+
+    // Add function call instruction
+    BytecodeInstruction instr = {
+        .opcode = OP_CALL_FUNCTION,
+        .operand.string_operand = identifierNode->operator_  // Function name
+    };
+    (*bytecode)[(*bytecode_count)++] = instr;
+
+    // Handle the return value if necessary
+}
+
+
+
+
+
+/***********************************************************
+* Function: generate_return_statement_bytecode
+* Description: Generates bytecode for a `return` statement.
+* Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+* Return: void
+***********************************************************/
+void generate_return_statement_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+    if (!node || node->type != AST_RETURN_STATEMENT) {
+        fprintf(stderr, "Invalid node type for return statement.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Check if the return statement has a value
+    if (node->child_count > 0) {
+        // Generate bytecode for the return expression
+        generate_bytecode(node->children[0], bytecode, bytecode_count, bytecode_capacity);
+    }
+
+    // Ensure capacity for the return instruction
+    ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+
+    // Add the return instruction
+    BytecodeInstruction instr = { .opcode = OP_RETURN_ };
+    (*bytecode)[(*bytecode_count)++] = instr;
+}
+

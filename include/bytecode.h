@@ -1,3 +1,15 @@
+/***********************************************************
+* File: bytecode.h
+* This file have the bytecode for the interpreter.
+* The bytecode is used to store the instructions for the machine compiler (machine type: 86x64).
+* This Code was written by Lukas Fukuoka Vieira.
+* Contact: lukas.fvieira@hotmail.com
+* GitHub:https://github.com/comet400
+************************************************************/
+
+
+
+
 #pragma once
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +18,7 @@
 #ifndef BYTECODE_H
 #define BYTECODE_H
 
+//just so i keep track of it
 #define OP_ADD        0x04   // Add two registers
 #define OP_SUB        0x07   // Subtract two registers
 #define OP_MUL        0x08   // Multiply two registers
@@ -168,5 +181,11 @@ void print_byteCode(const BytecodeInstruction* bytecode, size_t count);
 void generate_identifier_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 void generate_unary_exp_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 void generate_if_statement_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity); 
+void generate_for_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+void generate_while_loop_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+void generate_function_declaration_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+void generate_function_call_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+void generate_return_statement_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+
 
 #endif BYTECODE_H
