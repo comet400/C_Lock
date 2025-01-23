@@ -279,4 +279,3 @@ void print_ast(const ASTNode* node, int depth) {
     }
 }
 
-
