@@ -568,6 +568,12 @@ RuntimeValue eval_array_literal(ASTNode* node, RuntimeEnvironment* env) {
         else if (current->type == AST_LITERAL) {
             elements[i - 1] = eval_ast_node(current, env); // Last element
         }
+		else if (current->type == AST_BINARY_EXPR) {
+			elements[i - 1] = eval_ast_node(current, env); // Last element
+		}
+		else if (current->type == AST_IDENTIFIER) {
+			elements[i - 1] = eval_ast_node(current, env); // Last element
+		}
         else {
             fprintf(stderr, "Error: Unexpected node type in array literal.\n");
             free(elements);
