@@ -103,7 +103,7 @@ typedef enum {
     OP_WHEN_,
     OP_DEFAULT_,
     OP_PARAMETER_LIST_,
-	OP_SCOPE
+	OP_SCOPE,
 } BytecodeOpcode;
 
 typedef struct {
@@ -186,6 +186,7 @@ void generate_while_loop_bytecode(const ASTNode* node, BytecodeInstruction** byt
 void generate_function_declaration_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 void generate_function_call_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 void generate_return_statement_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
-
+void generate_array_literal_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+void traverse_binary_expression(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity, size_t* element_count);
 
 #endif BYTECODE_H

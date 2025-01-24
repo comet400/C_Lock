@@ -186,7 +186,6 @@ void generate_binary_expr_bytecode(const ASTNode* node, BytecodeInstruction** by
 		instr.opcode = OP_OR_;
 	}
 	else if (strcmp(node->operator_, ",") == 0) {
-		// Ignore comma operator
 		return;
 	}
     else {
@@ -401,6 +400,10 @@ void generate_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size
 
     case AST_RETURN_STATEMENT:
 		generate_return_statement_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+		break;
+
+	case AST_ARRAY_LITERAL:
+		generate_array_literal_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
 		break;
 
     default:
@@ -754,6 +757,79 @@ void generate_function_call_bytecode(const ASTNode* node, BytecodeInstruction** 
     (*bytecode)[(*bytecode_count)++] = instr;
 
     // Handle the return value if necessary
+}
+
+
+
+
+/***********************************************************
+* Function: traverse_binary_expression
+* Description: Traverses a binary expression tree to generate bytecode for array literals.
+* Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity, size_t* element_count
+* Return: void
+* **********************************************************/
+void traverse_binary_expression(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity, size_t* element_count) {
+    if (!node) {
+        fprintf(stderr, "Invalid node in binary expression traversal.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (node->type == AST_BINARY_EXPR && strcmp(node->operator_, ",") == 0) {
+        // Handle the binary expression for a comma operator
+        // Recursively traverse the left child
+        traverse_binary_expression(node->children[0], bytecode, bytecode_count, bytecode_capacity, element_count);
+
+        // Increment the element count for the comma
+        (*element_count)++;
+
+        // Recursively traverse the right child
+        traverse_binary_expression(node->children[1], bytecode, bytecode_count, bytecode_capacity, element_count);
+    }
+    else {
+        // For other cases
+        generate_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+
+        // Only increment for the first item (element count starts at 1)
+        if (*element_count == 0) {
+            (*element_count) = 1;
+        }
+    }
+}
+
+
+
+
+
+/***********************************************************
+* Function: generate_array_literal_bytecode
+* Description: Generates bytecode for array literals.
+* Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+* Return: void
+* ***********************************************************/
+void generate_array_literal_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+    if (!node || node->type != AST_ARRAY_LITERAL) {
+        fprintf(stderr, "Invalid node type for array literal.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Counter to track the number of elements pushed
+    size_t element_count = 0;
+
+    // Traverse the binary expression tree to generate bytecode for all elements
+    traverse_binary_expression(node->children[0], bytecode, bytecode_count, bytecode_capacity, &element_count);
+
+    // Ensure capacity for the array creation instruction
+    ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+
+    // Add an instruction to create an array with the specified number of elements
+    BytecodeInstruction instr = {
+        .opcode = OP_ARRAY_SET_, // Replace with the correct opcode for array creation
+        .operand.array_literal.count = element_count // Use the tracked element count
+    };
+    (*bytecode)[(*bytecode_count)++] = instr;
+
+    // Optionally, print or log the number of elements for debugging
+    printf("Generated array literal bytecode with %zu elements.\n", element_count);
 }
 
 
