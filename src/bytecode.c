@@ -821,15 +821,12 @@ void generate_array_literal_bytecode(const ASTNode* node, BytecodeInstruction** 
     // Ensure capacity for the array creation instruction
     ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
 
-    // Add an instruction to create an array with the specified number of elements
+    // Add an instruction to create an array with the specified number of elements we will do it in assembly later
     BytecodeInstruction instr = {
-        .opcode = OP_ARRAY_SET_, // Replace with the correct opcode for array creation
+        .opcode = OP_ARRAY_SET_, // Use the array set instruction for array literals
         .operand.array_literal.count = element_count // Use the tracked element count
     };
     (*bytecode)[(*bytecode_count)++] = instr;
-
-    // Optionally, print or log the number of elements for debugging
-    printf("Generated array literal bytecode with %zu elements.\n", element_count);
 }
 
 
