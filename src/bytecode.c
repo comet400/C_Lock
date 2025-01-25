@@ -385,7 +385,12 @@ void generate_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size
         break;
 
     case AST_BINARY_EXPR:
-        generate_binary_expr_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+        if (strcmp(node->operator_, "=") == 0) {
+            generate_array_assignment_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+        }
+        else {
+            generate_binary_expr_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+        }
         break;
     
 	case AST_UNARY_EXPR:
@@ -405,6 +410,10 @@ void generate_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size
 	case AST_ARRAY_LITERAL:
 		generate_array_literal_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
 		break;
+
+    case AST_ARRAY_ACCESS:
+		generate_array_access_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+        break;
 
     default:
         fprintf(stderr, "Unhandled ASTNode type: %d\n", node->type);
@@ -815,19 +824,117 @@ void generate_array_literal_bytecode(const ASTNode* node, BytecodeInstruction** 
     // Counter to track the number of elements pushed
     size_t element_count = 0;
 
+    // Allocate a new register for the array
+    int array_reg = (*bytecode_count);  // Assign the current bytecode count as a pseudo-register index
+
     // Traverse the binary expression tree to generate bytecode for all elements
     traverse_binary_expression(node->children[0], bytecode, bytecode_count, bytecode_capacity, &element_count);
 
     // Ensure capacity for the array creation instruction
     ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
 
-    // Add an instruction to create an array with the specified number of elements we will do it in assembly later
+    // Add an instruction to create an array with the specified number of elements
     BytecodeInstruction instr = {
-        .opcode = OP_ARRAY_SET_, // Use the array set instruction for array literals
-        .operand.array_literal.count = element_count // Use the tracked element count
+        .opcode = OP_ARRAY_SET_,
+        .operand.array_literal.array_reg = array_reg,  // Assign the register for the array
+        .operand.array_literal.count = element_count   // Use the tracked element count
     };
     (*bytecode)[(*bytecode_count)++] = instr;
+
+    // Optionally, print or log the number of elements for debugging
+    printf("Generated array literal bytecode with %zu elements, assigned to register %d.\n", element_count, array_reg);
 }
+
+
+void generate_array_access_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+    if (!node || node->type != AST_ARRAY_ACCESS) {
+        fprintf(stderr, "Invalid node type for array access.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // The first child is the array identifier (variable holding the array)
+    const ASTNode* array_node = node->children[0];
+    if (!array_node || array_node->type != AST_IDENTIFIER) {
+        fprintf(stderr, "Invalid array identifier in array access.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // The second child is the index expression
+    const ASTNode* index_node = node->children[1];
+    if (!index_node) {
+        fprintf(stderr, "Invalid index expression in array access.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Generate bytecode for the array (loads the array onto the stack)
+    generate_bytecode(array_node, bytecode, bytecode_count, bytecode_capacity);
+
+    // Generate bytecode for the index expression (loads the index onto the stack)
+    generate_bytecode(index_node, bytecode, bytecode_count, bytecode_capacity);
+
+    // Ensure capacity for the array access instruction
+    ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+
+    // Add the OP_ARRAY_GET_ instruction
+    BytecodeInstruction instr = {
+        .opcode = OP_ARRAY_GET_,
+        .operand.array_access.array_reg = *bytecode_count - 2, // Array register
+        .operand.array_access.index_reg = *bytecode_count - 1  // Index register
+    };
+    (*bytecode)[(*bytecode_count)++] = instr;
+
+    // Optionally, log the generated instruction
+    printf("Generated OP_ARRAY_GET_ bytecode: ARRAY_REG = %d, INDEX_REG = %d\n",
+        instr.operand.array_access.array_reg, instr.operand.array_access.index_reg);
+}
+
+void generate_array_assignment_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+    if (!node || node->type != AST_BINARY_EXPR || strcmp(node->operator_, "=") != 0) {
+        fprintf(stderr, "Invalid node type for array assignment.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // The left-hand side is the array access node
+    const ASTNode* array_access_node = node->children[0];
+    if (!array_access_node || array_access_node->type != AST_ARRAY_ACCESS) {
+        fprintf(stderr, "Invalid array access in array assignment.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // The right-hand side is the value expression
+    const ASTNode* value_node = node->children[1];
+    if (!value_node) {
+        fprintf(stderr, "Invalid value expression in array assignment.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Generate bytecode for the array access (loads the array and index onto the stack)
+    generate_array_access_bytecode(array_access_node, bytecode, bytecode_count, bytecode_capacity);
+
+    // Generate bytecode for the value expression (loads the value onto the stack)
+    generate_bytecode(value_node, bytecode, bytecode_count, bytecode_capacity);
+
+    // Ensure capacity for the array set instruction
+    ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+
+    // Add the OP_ARRAY_SET_ instruction
+    BytecodeInstruction instr = {
+        .opcode = OP_ARRAY_SET_,
+        .operand.array_assignment.array_reg = *bytecode_count - 3, // Array register
+        .operand.array_assignment.index_reg = *bytecode_count - 2, // Index register
+        .operand.array_assignment.value_reg = *bytecode_count - 1  // Value register
+    };
+    (*bytecode)[(*bytecode_count)++] = instr;
+
+    // Optionally, log the generated instruction
+    printf("Generated OP_ARRAY_SET_ bytecode: ARRAY_REG = %d, INDEX_REG = %d, VALUE_REG = %d\n",
+        instr.operand.array_assignment.array_reg,
+        instr.operand.array_assignment.index_reg,
+        instr.operand.array_assignment.value_reg);
+}
+
+
+
 
 
 

@@ -137,6 +137,13 @@ typedef struct {
             int array_reg;
             int count;
         } array_literal;
+
+        struct {
+            int array_reg;  // Register for the array
+            int index_reg;  // Register for the index
+            int value_reg;  // Register for the value
+        } array_assignment;
+
         // For function declarations
         struct {
             int param_count;
@@ -188,5 +195,7 @@ void generate_function_call_bytecode(const ASTNode* node, BytecodeInstruction** 
 void generate_return_statement_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 void generate_array_literal_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 void traverse_binary_expression(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity, size_t* element_count);
+void generate_array_access_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+void generate_array_assignment_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 
 #endif BYTECODE_H
