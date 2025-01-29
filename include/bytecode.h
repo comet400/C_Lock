@@ -197,5 +197,9 @@ void generate_array_literal_bytecode(const ASTNode* node, BytecodeInstruction** 
 void traverse_binary_expression(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity, size_t* element_count);
 void generate_array_access_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 void generate_array_assignment_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+void generate_switch_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+void generate_when_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+void generate_stop_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
+void generate_default_switch_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 
 #endif BYTECODE_H

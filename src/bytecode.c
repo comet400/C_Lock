@@ -415,6 +415,22 @@ void generate_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size
 		generate_array_access_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
         break;
 
+    case AST_SWITCH:
+		generate_switch_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+		break;
+
+	case AST_WHEN:
+		generate_when_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+		break;
+
+	case AST_BREAK:
+		generate_stop_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+		break;
+
+	case AST_DEFAULT:
+		generate_stop_bytecode(node, bytecode, bytecode_count, bytecode_capacity);
+		break;
+
     default:
         fprintf(stderr, "Unhandled ASTNode type: %d\n", node->type);
         exit(EXIT_FAILURE);
@@ -745,7 +761,7 @@ void generate_function_call_bytecode(const ASTNode* node, BytecodeInstruction** 
 
     // The first child is the function name (identifier node)
     const ASTNode* identifierNode = node->children[0];
-    if (!identifierNode || identifierNode->type != AST_IDENTIFIER || !identifierNode->isFunction) {
+    if (!identifierNode || identifierNode->type != AST_IDENTIFIER) {
         fprintf(stderr, "Invalid function identifier in call.\n");
         exit(EXIT_FAILURE);
     }
@@ -846,6 +862,14 @@ void generate_array_literal_bytecode(const ASTNode* node, BytecodeInstruction** 
 }
 
 
+
+
+/***********************************************************
+* Function: generate_switch_bytecode
+* Description: Generates bytecode for switch statements.
+* Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+* Return: void
+* **********************************************************/
 void generate_array_access_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
     if (!node || node->type != AST_ARRAY_ACCESS) {
         fprintf(stderr, "Invalid node type for array access.\n");
@@ -888,6 +912,15 @@ void generate_array_access_bytecode(const ASTNode* node, BytecodeInstruction** b
         instr.operand.array_access.array_reg, instr.operand.array_access.index_reg);
 }
 
+
+
+
+/***********************************************************
+* Function: generate_array_assignment_bytecode
+* Description: Generates bytecode for array assignments.
+* Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+* Return: void
+* **********************************************************/
 void generate_array_assignment_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
     if (!node || node->type != AST_BINARY_EXPR || strcmp(node->operator_, "=") != 0) {
         fprintf(stderr, "Invalid node type for array assignment.\n");
@@ -966,3 +999,160 @@ void generate_return_statement_bytecode(const ASTNode* node, BytecodeInstruction
     (*bytecode)[(*bytecode_count)++] = instr;
 }
 
+
+void generate_switch_bytecode(const ASTNode* node,
+    BytecodeInstruction** bytecode,
+    size_t* bytecode_count,
+    size_t* bytecode_capacity)
+{
+    if (!node || node->type != AST_SWITCH) {
+        fprintf(stderr, "Invalid node type for switch statement.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    generate_bytecode(node->children[0], bytecode, bytecode_count, bytecode_capacity);
+    int switch_expr_reg = (int)(*bytecode_count) - 1;
+
+    int when_count = 0;
+    int default_child_ix = -1;
+    for (size_t i = 1; i < node->child_count; i++) {
+        const ASTNode* c = node->children[i];
+        if (!c) continue;
+        if (c->type == AST_WHEN) when_count++;
+        else if (c->type == AST_DEFAULT) default_child_ix = (int)i;
+        else {
+            fprintf(stderr, "Invalid node type inside switch.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+    size_t switch_index = *bytecode_count;
+    BytecodeInstruction si;
+    memset(&si, 0, sizeof(si));
+    si.opcode = OP_SWITCH_;
+    si.operand.switch_.when_count = when_count;
+    si.operand.switch_.default_index = -1;
+    (*bytecode)[(*bytecode_count)++] = si;
+
+    for (size_t i = 1; i < node->child_count; i++) {
+        ASTNode* c = node->children[i];
+        if (!c || c->type != AST_WHEN) continue;
+
+        generate_bytecode(c->children[0], bytecode, bytecode_count, bytecode_capacity);
+        int cond_reg = (int)(*bytecode_count) - 1;
+
+        BytecodeInstruction eq;
+        memset(&eq, 0, sizeof(eq));
+        eq.opcode = OP_EQUAL;
+        eq.operand.binary.left_reg = switch_expr_reg;
+        eq.operand.binary.right_reg = cond_reg;
+        ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+        (*bytecode)[(*bytecode_count)++] = eq;
+
+        BytecodeInstruction wi;
+        memset(&wi, 0, sizeof(wi));
+        wi.opcode = OP_WHEN_;
+        wi.operand.when.condition_reg = (int)(*bytecode_count) - 1;
+        wi.operand.when.body_index = (int)(*bytecode_count) + 1;
+        ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+        (*bytecode)[(*bytecode_count)++] = wi;
+
+        for (size_t j = 1; j < c->child_count; j++) {
+            generate_bytecode(c->children[j], bytecode, bytecode_count, bytecode_capacity);
+        }
+
+        ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+        BytecodeInstruction br;
+        memset(&br, 0, sizeof(br));
+        br.opcode = OP_BREAK_;
+        (*bytecode)[(*bytecode_count)++] = br;
+    }
+
+    if (default_child_ix != -1) {
+        int def_ix = (int)(*bytecode_count);
+        ASTNode* def_node = node->children[default_child_ix];
+        for (size_t i = 0; i < def_node->child_count; i++) {
+            generate_bytecode(def_node->children[i], bytecode, bytecode_count, bytecode_capacity);
+        }
+        ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+        BytecodeInstruction br;
+        memset(&br, 0, sizeof(br));
+        br.opcode = OP_BREAK_;
+        (*bytecode)[(*bytecode_count)++] = br;
+        (*bytecode)[switch_index].operand.switch_.default_index = def_ix;
+    }
+}
+
+
+
+
+/***********************************************************
+* Function: generate_when_bytecode
+* Description: Generates bytecode for a `when` statement.
+* Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+* Return: void
+* ***********************************************************/
+void generate_when_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+	if (!node || node->type != AST_WHEN) {
+		fprintf(stderr, "Invalid node type for when statement.\n");
+		exit(EXIT_FAILURE);
+	}
+	// Generate bytecode for the when condition
+	generate_bytecode(node->children[0], bytecode, bytecode_count, bytecode_capacity);
+	// Ensure capacity for the when instruction
+	ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+	// Add the when instruction
+	BytecodeInstruction instr = {
+		.opcode = OP_WHEN_,
+		.operand.when.condition_reg = *bytecode_count - 1, // Condition register
+		.operand.when.body_index = *bytecode_count + 1    // Body starts next
+	};
+	(*bytecode)[(*bytecode_count)++] = instr;
+	// Generate bytecode for the when body
+	generate_bytecode(node->children[1], bytecode, bytecode_count, bytecode_capacity);
+}
+
+
+
+
+
+/***********************************************************
+ * Function: generate_stop_bytecode
+ * Description: this function generates bytecode for a break statement.
+ * Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+ * Return: void
+ * ***********************************************************/
+void generate_stop_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+	if (!node || node->type != AST_BREAK) {
+		fprintf(stderr, "Invalid node type for stop statement.\n");
+		exit(EXIT_FAILURE);
+	}
+	// Ensure capacity for the stop instruction
+	ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+	// Add the stop instruction
+	BytecodeInstruction instr = { .opcode = OP_BREAK_ };
+	(*bytecode)[(*bytecode_count)++] = instr;
+}
+
+
+
+
+
+/***********************************************************
+ * Function: generate_default_switch_bytecode
+ * Description: this function generates bytecode for a default switch statement.
+ * Parameters: const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity
+ * Return: void
+ * ***********************************************************/
+void generate_default_switch_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
+	if (!node || node->type != AST_DEFAULT) {
+		fprintf(stderr, "Invalid node type for default statement.\n");
+		exit(EXIT_FAILURE);
+	}
+	// Ensure capacity for the default instruction
+	ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+	// Add the default instruction
+	BytecodeInstruction instr = { .opcode = OP_DEFAULT_ };
+	(*bytecode)[(*bytecode_count)++] = instr;
+}
