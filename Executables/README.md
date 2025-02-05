@@ -8,7 +8,7 @@ No experience with **C** or **Makefiles**? No problem! We've got you covered.
 This interpreter is designed for simplicity and efficiency. Whether you're here to test the language or dive deeper, the process is straightforward.
 
 - **Lightweight**: At just **49KB**, it’s incredibly compact—your system won’t even notice it’s there!
-- **Optimized**: Developed with cutting-edge optimization tools for maximum performance.
+- **Optimized**: Developed with hard optimization tools for maximum performance.
 
 ---
 
