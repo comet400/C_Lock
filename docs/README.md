@@ -1,12 +1,12 @@
 # C Lock Programming Language Syntax Guide
 
-**C Lock** combines the simplicity of Python with the structure of C, offering an intuitive and powerful syntax for developers. This guide provides an overview of the main syntax features and usage in C Lock.
+**C Lock** combines the simplicity of Python with the structure of C, offering easy syntax for developers. This guide provides an overview of the main syntax features and usage in C Lock.
 
 ---
 
 ## Syntax Overview
 
-C Lock introduces a unique blend of readability and structure while maintaining security features like file encryption. Here's a breakdown of the syntax features:
+C Lock introduces built in tools for encryption and decryption, the user may use any interpreter that is adequate for the task. Here's a breakdown of the syntax features:
 
 ---
 
