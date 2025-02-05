@@ -17,7 +17,7 @@ Clock is designed to be lightweight and safe, with no inherent dangers in runnin
 - **GitHub**: Open an issue in the repository with the "Security" label.
 
 ### What to Expect
-- **Acknowledgment**: We will acknowledge your report within 48 hours.
+- **Acknowledgment**: We will acknowledge your report as fast as we can.
 - **Updates**: You can expect regular updates on the status of your report.
 - **Resolution**: If a vulnerability is confirmed, we will work on a fix and notify users of any necessary updates.
 
