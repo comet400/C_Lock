@@ -4,7 +4,7 @@ Thank you for showing interest in contributing to **Clock**! Whether you're fixi
 
 ---
 
-## 🛠️ How to Contribute
+## How to Contribute
 
 ### 1. **Find an Issue to Work On**
 - Browse the [Issues](https://github.com/comet400/clock/issues) section to find tasks that align with your interests and skill set.
@@ -27,7 +27,7 @@ For personalized guidance or collaboration:
 
 ---
 
-## 🖥️ Setting Up the Project Locally
+## Setting Up the Project Locally
 
 ### Prerequisites
 Before getting started, ensure you have the following tools installed:
