@@ -1,16 +1,16 @@
 # C Lock Programming Language
 
-**C Lock** (short for **C Language with LOCKED code**) is a secure and innovative programming language built from scratch in **C**. It combines **lightweight execution**, **encryption with AES-256**, and a mix of **Python-C-inspired syntax**, offering a customizable and secure coding experience.
+**C Lock** (short for **C Language with LOCKED code**) is a secure programming language built from scratch in **C**. It combines **lightweight execution**, **encryption with AES-256**, and a mix of **Python-C-inspired syntax**, offering a customizable and secure coding experience. In the current world cybersecurity is a must, so this language is trying its best to be developed, and perform in way that makes revese engineering harder for future attacks.
 
-Whether you want to explore **low-level language design**, **secure your scripts**, or learn about **interpreters**, C Lock is designed to empower developers while prioritizing **code privacy**.
+Whether you want to explore **low-level language design**, **secure your scripts**, or learn about **interpreters**, C Lock is being designed to help developers while prioritizing **code privacy**.
 
 ---
 
 ## Features
 
 - **Built from Scratch**: No frameworks—just pure C and standard libraries.
-- **Secure by Design**: Uses AES-256 to ensure code privacy and prevent tampering.
-- **Lightweight**: Optimized for simplicity and size, with plans for bytecode and JIT compilation.
+- **Secure by Design**: Uses AES-256 to ensure code privacy and prevent tampering. (Might change to quantum encryption for future treats)
+- **Lightweight**: Optimized for simplicity and size, with plans for bytecode and AOT compilation. (compilation still under development)
 - **Custom Interpreter**: Reads encrypted `.clk` files for secure execution (works with any kind of text file).
 - **Python-C Syntax**: Combines Python's simplicity with C's power.
 
@@ -88,7 +88,5 @@ Contributions are welcome! Here's how you can help:
 
 Check out the issues.
 Fork the repository and submit a pull request.
-Explore beginner-friendly tasks tagged with good first issue.
 
-#🛡️ License
-MIT License - Free for personal and commercial use.
+### C Lock is in very early development and is not yet ready for any kind of commercial use
