@@ -1,0 +1,16 @@
+// bench_3m.clk - 3 million loop benchmark
+// Measures VM / AOT execution time using native timer builtins
+
+timer_start();
+
+counter = 0;
+for (0 to 3000000) {
+    counter += 1;
+}
+
+ms = timer_elapsed_ms();
+
+write("Loop count: ");
+write(counter);
+write("Time (ms): ");
+write(ms);

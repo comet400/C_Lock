@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Interpreter.h"  
+#include "interpreter.h"
 
 
 
@@ -143,7 +143,7 @@ void interpret(ASTNode* root) {
 RuntimeValue make_special_value(const char* special) {
     RuntimeValue value = make_null_value();
     value.type = RUNTIME_VALUE_SPECIAL;
-    value.special_val = special;
+    value.special_val = (char*)special;
     return value;
 }
 
@@ -491,8 +491,7 @@ RuntimeValue eval_function_declaration(ASTNode* node, RuntimeEnvironment* env) {
 * ***********************************************************/
 RuntimeValue eval_user_function_call(RuntimeValue functionVal, RuntimeValue* args, size_t arg_count) {
     // 1) Create a new environment
-    RuntimeEnvironment* functionEnv = create_environment(128);
-    functionEnv->parent = functionVal.function_val.env;
+    RuntimeEnvironment* functionEnv = create_environment(functionVal.function_val.env);
 
     // 2) Use the parameter list stored in functionVal
     ASTNode* paramList = functionVal.function_val.parameters;
@@ -732,7 +731,7 @@ RuntimeValue eval_assignment(ASTNode* node, RuntimeEnvironment* env) {
         }
     }
 
-    if (rightVal.type == AST_FUNCTION_CALL) {
+    if (rightVal.type == RUNTIME_VALUE_FUNCTION) {
         rightVal = eval_user_function_call(rightVal, NULL, 0);
     }
 
@@ -754,7 +753,7 @@ RuntimeValue eval_assignment(ASTNode* node, RuntimeEnvironment* env) {
         }
 
         long index = indexVal.int_val;
-        if (index < 0 || index >= arrayVal.array_val.count) {
+        if (index < 0 || index >= (long)arrayVal.array_val.count) {
             fprintf(stderr, "Error: Array index out of bounds.\n");
             return make_null_value();
         }
@@ -822,7 +821,7 @@ RuntimeValue eval_array_access(ASTNode* node, RuntimeEnvironment* env) {
 
     // Check index bounds
     long index = indexVal.int_val;
-    if (index < 0 || index >= arrayVal.array_val.count) {
+    if (index < 0 || index >= (long)arrayVal.array_val.count) {
         fprintf(stderr, "Error: Array index out of bounds.\n");
         return make_null_value();
     }
@@ -1181,7 +1180,6 @@ RuntimeValue eval_for_statement(ASTNode* node, RuntimeEnvironment* env) {
 
     // Loop execution
     for (long i = start; i < end; i++) {
-        RuntimeValue indexValue = make_int_value(i);
         RuntimeValue result = eval_ast_node(bodyNode, env);
         // Check for break signal
         if (result.type == RUNTIME_VALUE_SPECIAL && strcmp(result.special_val, "stop") == 0) {

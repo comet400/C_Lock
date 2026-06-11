@@ -97,6 +97,10 @@ RuntimeValue builtin_timestamp(RuntimeValue* args, size_t argc);
 
 RuntimeValue builtin_current_date(RuntimeValue* args, size_t argc);
 
+RuntimeValue builtin_timer_start(RuntimeValue* args, size_t argc);
+
+RuntimeValue builtin_timer_elapsed_ms(RuntimeValue* args, size_t argc);
+
 void add_time_built_ins(RuntimeEnvironment* env);
 
 void add_file_built_ins(RuntimeEnvironment* env);

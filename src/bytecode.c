@@ -11,6 +11,7 @@
 
 
 #include "bytecode.h"
+#include <string.h>
 
 const char* ByteCodeNames[] = {
     "OP_PUSH_INT",
@@ -59,7 +60,8 @@ const char* ByteCodeNames[] = {
     "OP_WHEN_",
     "OP_DEFAULT_",
     "OP_PARAMETER_LIST_",
-    "OP_SCOPE"
+    "OP_SCOPE",
+    "OP_END_FUNCTION"
 };
 
 
@@ -212,16 +214,48 @@ void generate_binary_expr_bytecode(const ASTNode* node, BytecodeInstruction** by
  * Return: void
  * ***********************************************************/
 void generate_assignment_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity) {
-    // Generate bytecode for the right-hand side (RHS)
-    generate_bytecode(node->children[1], bytecode, bytecode_count, bytecode_capacity);
+    const char* var_name = node->children[0]->operator_;
+    const char* op = node->operator_;
 
-    // Generate a STORE instruction for the left-hand side (LHS)
+    // For compound assignments (+=, -=, *=, /=, %=):
+    // emit: LOAD var, RHS, OP, STORE var
+    if (strcmp(op, "+=") == 0 || strcmp(op, "-=") == 0 ||
+        strcmp(op, "*=") == 0 || strcmp(op, "/=") == 0 ||
+        strcmp(op, "%=") == 0)
+    {
+        // Load current variable value
+        ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+        BytecodeInstruction load_instr = {
+            .opcode = OP_LOAD_VAR_,
+            .operand.string_operand = var_name
+        };
+        (*bytecode)[(*bytecode_count)++] = load_instr;
+
+        // Generate the RHS
+        generate_bytecode(node->children[1], bytecode, bytecode_count, bytecode_capacity);
+
+        // Emit the arithmetic opcode
+        ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+        BytecodeOpcode arith;
+        if      (strcmp(op, "+=") == 0) arith = OP_ADD_;
+        else if (strcmp(op, "-=") == 0) arith = OP_SUBTRACT;
+        else if (strcmp(op, "*=") == 0) arith = OP_MULTIPLY;
+        else if (strcmp(op, "/=") == 0) arith = OP_DIVIDE;
+        else                             arith = OP_MODULO;
+        BytecodeInstruction arith_instr = { .opcode = arith };
+        (*bytecode)[(*bytecode_count)++] = arith_instr;
+    } else {
+        // Plain assignment: just push RHS
+        generate_bytecode(node->children[1], bytecode, bytecode_count, bytecode_capacity);
+    }
+
+    // STORE result into variable
     ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
-    BytecodeInstruction instr = {
+    BytecodeInstruction store_instr = {
         .opcode = OP_STORE_VAR_,
-        .operand.string_operand = node->children[0]->operator_
+        .operand.string_operand = var_name
     };
-    (*bytecode)[(*bytecode_count)++] = instr;
+    (*bytecode)[(*bytecode_count)++] = store_instr;
 }
 
 
@@ -705,12 +739,33 @@ void generate_function_declaration_bytecode(const ASTNode* node, BytecodeInstruc
         exit(EXIT_FAILURE);
     }
 
+    int param_count = (int)node->child_count - 2;
+    if (param_count < 0) {
+        param_count = 0;
+    }
+
+    char** param_names = NULL;
+    if (param_count > 0) {
+        param_names = (char**)malloc(sizeof(char*) * (size_t)param_count);
+        if (!param_names) {
+            fprintf(stderr, "Memory allocation failed for function parameter names.\n");
+            exit(EXIT_FAILURE);
+        }
+        for (int p = 0; p < param_count; p++) {
+            param_names[p] = node->children[1 + p]->operator_;
+        }
+    }
+
     // Add function declaration instruction
     BytecodeInstruction instr = {
         .opcode = OP_DECL_FUNCTION,
-        .operand.function_decl.param_count = node->child_count - 2, // Remaining children after identifier and body
-        .operand.function_decl.body_index = *bytecode_count + 1    // Body starts next
+        .operand.function_decl.func_name = identifierNode->operator_,
+        .operand.function_decl.param_count = param_count,
+        .operand.function_decl.body_index = (int)(*bytecode_count + 1),
+        .operand.function_decl.end_index = -1,
+        .operand.function_decl.param_names = param_names
     };
+    size_t decl_index = *bytecode_count;
     (*bytecode)[(*bytecode_count)++] = instr;
 
     // Track whether a return statement has been encountered
@@ -738,9 +793,15 @@ void generate_function_declaration_bytecode(const ASTNode* node, BytecodeInstruc
     // Add return instruction if there wasn't an explicit return in the function
     if (!has_returned) {
         ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
-        instr.opcode = OP_RETURN_;
-        (*bytecode)[(*bytecode_count)++] = instr;
+        BytecodeInstruction retInstr = { .opcode = OP_RETURN_ };
+        (*bytecode)[(*bytecode_count)++] = retInstr;
     }
+
+    ensure_bytecode_capacity(bytecode, bytecode_count, bytecode_capacity);
+    BytecodeInstruction endInstr = { .opcode = OP_END_FUNCTION };
+    (*bytecode)[(*bytecode_count)++] = endInstr;
+
+    (*bytecode)[decl_index].operand.function_decl.end_index = (int)(*bytecode_count);
 }
 
 
@@ -777,11 +838,10 @@ void generate_function_call_bytecode(const ASTNode* node, BytecodeInstruction** 
     // Add function call instruction
     BytecodeInstruction instr = {
         .opcode = OP_CALL_FUNCTION,
-        .operand.string_operand = identifierNode->operator_  // Function name
+        .operand.call.func_name = identifierNode->operator_,
+        .operand.call.arg_count = (int)(node->child_count - 1)
     };
     (*bytecode)[(*bytecode_count)++] = instr;
-
-    // Handle the return value if necessary
 }
 
 

@@ -3,11 +3,14 @@
 #include <stdio.h>
 #include "lexer.h"
 #include <sys/stat.h>
+#include <time.h>
+#ifdef _WIN32
 #include <windows.h>
 #include <wchar.h>
-#include <time.h>
-
-#pragma warning(disable : 4996)
+#else
+#include <dirent.h>
+#include <sys/time.h>
+#endif
 
 /***********************************************************
 * Function: hash_string
@@ -124,6 +127,34 @@ RuntimeValue builtin_current_date(RuntimeValue* args, size_t argc) {
 
 
 
+
+/* Global start time for the timer builtins */
+static long long __clk_timer_start_ms = 0;
+
+static long long clk_now_ms(void) {
+#ifdef _WIN32
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    long long t = ((long long)ft.dwHighDateTime << 32) | ft.dwLowDateTime;
+    return (long long)(t / 10000LL);
+#else
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (long long)tv.tv_sec * 1000LL + tv.tv_usec / 1000LL;
+#endif
+}
+
+RuntimeValue builtin_timer_start(RuntimeValue* args, size_t argc) {
+    (void)args; (void)argc;
+    __clk_timer_start_ms = clk_now_ms();
+    return make_null_value();
+}
+
+RuntimeValue builtin_timer_elapsed_ms(RuntimeValue* args, size_t argc) {
+    (void)args; (void)argc;
+    long long elapsed = clk_now_ms() - __clk_timer_start_ms;
+    return make_int_value((long)elapsed);
+}
 
 /***********************************************************
 * Function: print_builtin
@@ -372,6 +403,7 @@ RuntimeValue builtin_list_files(RuntimeValue* args, size_t argc) {
 
     const char* dirPath = args[0].string_val;
 
+#ifdef _WIN32
     // Convert `dirPath` to a wide string
     size_t len = strlen(dirPath) + 3; // +3 for "\\*" and null terminator
     wchar_t* widePath = (wchar_t*)malloc(len * sizeof(wchar_t));
@@ -401,6 +433,23 @@ RuntimeValue builtin_list_files(RuntimeValue* args, size_t argc) {
     } while (FindNextFile(hFind, &findFileData) != 0);
 
     FindClose(hFind);
+#else
+    DIR* dir = opendir(dirPath);
+    if (!dir) {
+        fprintf(stderr, "Error: Could not open directory '%s'.\n", dirPath);
+        return make_null_value();
+    }
+
+    printf("Files in '%s':\n", dirPath);
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_REG) {
+            printf("  %s\n", entry->d_name);
+        }
+    }
+
+    closedir(dir);
+#endif
     return make_null_value();
 }
 
@@ -477,6 +526,12 @@ void add_time_built_ins(RuntimeEnvironment* env)
 
     RuntimeValue timestampFunction = make_builtin_function(builtin_timestamp);
     env_set_func(env, "timestamp", timestampFunction);
+
+    RuntimeValue timerStartFn = make_builtin_function(builtin_timer_start);
+    env_set_func(env, "timer_start", timerStartFn);
+
+    RuntimeValue timerElapsedFn = make_builtin_function(builtin_timer_elapsed_ms);
+    env_set_func(env, "timer_elapsed_ms", timerElapsedFn);
 }
 
 

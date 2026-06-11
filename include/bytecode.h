@@ -104,6 +104,7 @@ typedef enum {
     OP_DEFAULT_,
     OP_PARAMETER_LIST_,
 	OP_SCOPE,
+    OP_END_FUNCTION,
 } BytecodeOpcode;
 
 typedef struct {
@@ -146,9 +147,17 @@ typedef struct {
 
         // For function declarations
         struct {
+            char* func_name;
             int param_count;
             int body_index;
+            int end_index;
+            char** param_names;
         } function_decl;
+        // For function calls
+        struct {
+            char* func_name;
+            int arg_count;
+        } call;
         // For switch statements
         struct {
             int default_index;
@@ -202,4 +211,4 @@ void generate_when_bytecode(const ASTNode* node, BytecodeInstruction** bytecode,
 void generate_stop_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 void generate_default_switch_bytecode(const ASTNode* node, BytecodeInstruction** bytecode, size_t* bytecode_count, size_t* bytecode_capacity);
 
-#endif BYTECODE_H
+#endif // BYTECODE_H

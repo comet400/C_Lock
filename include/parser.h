@@ -65,4 +65,4 @@ void synchronize_to_next_case(Parser* parser);
 void parse_case_statements(Parser* parser, ASTNode* caseNode);
 
 
-#endif PARSER_H
+#endif // PARSER_H
